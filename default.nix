@@ -16,7 +16,6 @@ mkYarnPackage rec {
       (builtins.map
         (x: ''"${x.outPath}/src/**/*.purs"'')
         (builtins.attrValues spagoPkgs.inputs))}
-    cp -r $src/assets ./
     '';
 
   postFixup = ''
