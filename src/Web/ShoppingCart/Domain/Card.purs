@@ -12,7 +12,7 @@ newtype CardNumber = CardNumber { unCardNumber :: String }
 newtype CardExpiration = CardExpiration { unCardExpiration :: String }
 newtype CVV = CVV { unCvv :: String }
 
-data Card = Card
+type Card =
   { cardName :: CardName
   , cardNumber :: CardNumber
   , cardExpiration :: CardExpiration

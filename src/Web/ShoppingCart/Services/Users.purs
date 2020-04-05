@@ -1,7 +1,5 @@
 module Web.ShoppingCart.Services.Users
-        ( class Users
-        , find
-        , create
+        ( Users (..)
         ) where
 
 import Data.Maybe (Maybe)
@@ -9,6 +7,7 @@ import Data.Maybe (Maybe)
 import Web.ShoppingCart.Domain.User (UserId, UserName, Password, User)
 
 
-class Users m where
-  find :: UserName -> Password -> m (Maybe User)
-  create :: UserName -> Password -> m UserId
+data Users m = Users
+  { find :: UserName -> Password -> m (Maybe User)
+  , create :: UserName -> Password -> m UserId
+  }

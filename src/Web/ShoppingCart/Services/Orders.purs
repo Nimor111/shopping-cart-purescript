@@ -1,8 +1,5 @@
 module Web.ShoppingCart.Services.Orders
-        ( class Orders
-        , get
-        , findBy
-        , create
+        ( Orders (..)
         ) where
 
 import Data.List.Types (List)
@@ -13,7 +10,8 @@ import Web.ShoppingCart.Domain.ShoppingCart (CartItem)
 import Web.ShoppingCart.Domain.User (UserId)
 
 
-class Orders m where
-  get :: UserId -> OrderId -> m (Maybe Order)
-  findBy :: UserId -> m (List Order)
-  create :: UserId -> PaymentId -> List CartItem -> Money -> m OrderId
+type Orders m =
+  { get :: UserId -> OrderId -> m (Maybe Order)
+  , findBy :: UserId -> m (List Order)
+  , create :: UserId -> PaymentId -> List CartItem -> Money -> m OrderId
+  }

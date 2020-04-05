@@ -13,7 +13,7 @@ import Web.ShoppingCart.Domain.ShoppingCart (Quantity(..))
 newtype OrderId = OrderId { unOrderId :: UUID }
 newtype PaymentId = PaymentId { unPaymentId :: UUID }
 
-data Order = Order
+type Order =
     { orderId :: OrderId
     , orderPaymentId :: PaymentId
     , orderItems :: Map ItemId Quantity

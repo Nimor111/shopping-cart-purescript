@@ -16,12 +16,12 @@ newtype Quantity = Quantity { unQuantity :: Int }
 newtype Cart = Cart { unCart :: Map ItemId Quantity }
 newtype CartId = CartId { unCartId :: UUID }
 
-data CartItem = CartItem
+type CartItem =
     { cartItem :: Item
     , cartItemQuantity :: Quantity
     }
 
-data CartTotal = CartTotal
+type CartTotal =
     { cartTotalItems :: List CartItem
     , cartTotal :: Money
     }

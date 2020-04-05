@@ -1,7 +1,5 @@
 module Web.ShoppingCart.Services.Categories
-        ( class Categories
-        , findAll
-        , create
+        ( Categories (..)
         ) where
 
 import Prelude
@@ -10,6 +8,7 @@ import Data.List.Types (List)
 import Web.ShoppingCart.Domain.Category (Category)
 
 
-class Categories m where
-    findAll :: m (List Category)
-    create :: Category -> m Unit
+data Categories m = Categories
+    { findAll :: m (List Category)
+    , create :: Category -> m Unit
+    }

@@ -1,10 +1,5 @@
 module Web.ShoppingCart.Services.Items
-        ( class Items
-        , findAll
-        , findBy
-        , findById
-        , create
-        , update
+        ( Items (..)
         ) where
 
 import Prelude
@@ -15,9 +10,10 @@ import Web.ShoppingCart.Domain.Brand (BrandName)
 import Web.ShoppingCart.Domain.Item (Item, ItemId, CreateItem, UpdateItem)
 
 
-class Items m where
-    findAll :: m (List Item)
-    findBy :: BrandName -> m (List Item)
-    findById :: ItemId -> m (Maybe Item)
-    create :: CreateItem -> m Unit
-    update :: UpdateItem -> m Unit
+data Items m = Items
+    { findAll :: m (List Item)
+    , findBy :: BrandName -> m (List Item)
+    , findById :: ItemId -> m (Maybe Item)
+    , create :: CreateItem -> m Unit
+    , update :: UpdateItem -> m Unit
+    }
