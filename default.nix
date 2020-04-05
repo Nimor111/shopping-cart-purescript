@@ -21,14 +21,11 @@ mkYarnPackage rec {
 
   postFixup = ''
     ${spago}/bin/spago bundle-app --no-install \
-      --no-build --main Example.Main --to dist/app.js
+      --no-build --main Main --to dist/app.js
     mkdir -p $out/dist
     cp -r dist $out/
     ln -s $out/libexec/${name}/node_modules $out/dist
   '';
-
-    #${nodejs-12_x}/bin/node node_modules/.bin/parcel \
-      #build assets/*.html --out-dir $out/dist/
 
   meta = with stdenv.lib; {
     description = "Shopping cart application in PureScript.";
