@@ -4,6 +4,7 @@ module Web.ShoppingCart.Domain.Payment
 
 import Web.ShoppingCart.Domain.Item (Money)
 import Web.ShoppingCart.Domain.User (UserId)
+import Web.ShoppingCart.Domain.Card (Card)
 
 
 data Payment = Payment

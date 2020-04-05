@@ -1,5 +1,9 @@
 module Web.ShoppingCart.Domain.Card
         ( Card (..)
+        , CardName (..)
+        , CardNumber (..)
+        , CardExpiration (..)
+        , CVV (..)
         ) where
 
 
