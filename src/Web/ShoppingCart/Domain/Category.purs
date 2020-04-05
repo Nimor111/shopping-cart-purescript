@@ -10,7 +10,7 @@ import Data.UUID (UUID)
 newtype CategoryId = CategoryId { unCategoryId :: UUID }
 newtype CategoryName = CategoryName { unCategoryName :: String }
 
-data Category = Category
+type Category =
     { categoryId :: CategoryId
     , categoryName :: CategoryName
     }

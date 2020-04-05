@@ -10,7 +10,7 @@ import Data.UUID (UUID)
 newtype BrandId = BrandId { unBrandId :: UUID }
 newtype BrandName = BrandName { unBrandName :: String }
 
-data Brand = Brand
+type Brand =
     { brandId :: BrandId
     , brandName :: BrandName
     }

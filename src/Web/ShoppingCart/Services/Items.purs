@@ -10,7 +10,7 @@ import Web.ShoppingCart.Domain.Brand (BrandName)
 import Web.ShoppingCart.Domain.Item (Item, ItemId, CreateItem, UpdateItem)
 
 
-data Items m = Items
+type Items m =
     { findAll :: m (List Item)
     , findBy :: BrandName -> m (List Item)
     , findById :: ItemId -> m (Maybe Item)

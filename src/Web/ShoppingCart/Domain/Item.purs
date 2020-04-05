@@ -19,7 +19,7 @@ newtype ItemName = ItemName { unItemName :: String }
 newtype ItemDescription = ItemDescription { unItemDescription :: String }
 newtype Money = Money { unMoney :: Number }
 
-data Item = Item
+type Item =
     { itemId :: ItemId
     , itemName :: ItemName
     , itemDescription :: ItemDescription
@@ -28,7 +28,7 @@ data Item = Item
     , itemCategory :: Category
     }
 
-data CreateItem = CreateItem
+type CreateItem =
     { createItemName :: ItemName
     , createItemDescription :: ItemDescription
     , createItemPrice :: Money
@@ -36,7 +36,7 @@ data CreateItem = CreateItem
     , createItemCategoryId :: CategoryId
     }
 
-data UpdateItem = UpdateItem
+type UpdateItem =
     { updateItemId :: ItemId
     , updateItemPrice :: Money
     }

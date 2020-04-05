@@ -7,7 +7,7 @@ import Data.Maybe (Maybe)
 import Web.ShoppingCart.Domain.User (UserId, UserName, Password, User)
 
 
-data Users m = Users
+type Users m =
   { find :: UserName -> Password -> m (Maybe User)
   , create :: UserName -> Password -> m UserId
   }

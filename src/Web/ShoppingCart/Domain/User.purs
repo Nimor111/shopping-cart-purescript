@@ -14,7 +14,7 @@ newtype UserName = UserName { unUserName :: String }
 newtype Password = Password { unPassword :: String }
 newtype JwtToken = JwtToken { unJwtToken :: String }
 
-data User = User
+type User =
   { userId :: UserId
   , userName :: UserName
   }

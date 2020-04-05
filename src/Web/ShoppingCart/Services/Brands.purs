@@ -8,7 +8,7 @@ import Data.List.Types (List)
 import Web.ShoppingCart.Domain.Brand (Brand)
 
 
-data Brands m = Brands
+type Brands m =
     { findAll :: m (List Brand)
     , create :: Brand -> m Unit
     }

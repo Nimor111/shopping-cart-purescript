@@ -8,7 +8,7 @@ import Data.List.Types (List)
 import Web.ShoppingCart.Domain.Category (Category)
 
 
-data Categories m = Categories
+type Categories m =
     { findAll :: m (List Category)
     , create :: Category -> m Unit
     }
