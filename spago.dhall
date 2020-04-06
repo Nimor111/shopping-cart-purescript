@@ -12,7 +12,8 @@ You can edit this file as you like.
     "postgresql-client", 
     "selda",
     "uuid",
-    "ordered-collections"
+    "ordered-collections",
+    "aff-retry"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]

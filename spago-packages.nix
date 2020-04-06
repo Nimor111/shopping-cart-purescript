@@ -17,6 +17,18 @@ let
         installPhase = "ln -s $src $out";
       };
 
+    "aff-retry" = pkgs.stdenv.mkDerivation {
+        name = "aff-retry";
+        version = "v1.2.1";
+        src = pkgs.fetchgit {
+          url = "https://github.com/Unisay/purescript-aff-retry.git";
+          rev = "936fad803e3610f149df724ead288657a905cb84";
+          sha256 = "08651ly153ywzviab0ipd0zrhwdr8nz4xfym45dlpbgabgrh8pra";
+        };
+        phases = "installPhase";
+        installPhase = "ln -s $src $out";
+      };
+
     "ansi" = pkgs.stdenv.mkDerivation {
         name = "ansi";
         version = "v5.0.0";
