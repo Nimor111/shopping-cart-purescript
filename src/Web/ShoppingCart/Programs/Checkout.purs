@@ -4,29 +4,35 @@ module Web.ShoppingCart.Programs.Checkout
 
 import Prelude
 
-import Control.Monad.Error.Class (class MonadError, try)
-import Data.Either (Either(..))
-import Effect.Aff.Class (class MonadAff, liftAff)
-import Effect.Aff.Retry (RetryStatus(..), recovering)
+import Data.Time.Duration (Milliseconds(..))
+import Effect.Exception (error)
+
+import Control.Monad.Error.Class (class MonadError, try, catchError, throwError)
+import Data.List.Types (List)
+import Effect.Aff.Class (class MonadAff)
+import Effect.Aff.Retry (RetryStatus, recovering)
 import Effect.Class (liftEffect)
-import Effect.Class.Console (logShow)
 import Effect.Exception (Error)
 import Test.Unit.Console (log)
 import Web.ShoppingCart.Domain.Card (Card)
-import Web.ShoppingCart.Domain.Order (OrderId, PaymentId(..))
+import Web.ShoppingCart.Domain.Item (Money)
+import Web.ShoppingCart.Domain.Order (OrderId, PaymentId)
 import Web.ShoppingCart.Domain.Payment (Payment)
-import Web.ShoppingCart.Domain.ShoppingCart (CartTotal)
+import Web.ShoppingCart.Domain.ShoppingCart (CartItem, CartTotal)
 import Web.ShoppingCart.Domain.User (UserId)
 import Web.ShoppingCart.Retry (retryPolicy, checks)
 import Web.ShoppingCart.Services.Orders (Orders)
 import Web.ShoppingCart.Services.Payments (Payments)
 import Web.ShoppingCart.Services.ShoppingCart (ShoppingCart)
+import Web.ShoppingCart.Effects.Background (class Background, schedule)
 
+data OrderError = OrderError
 
 checkout
     :: forall m
     .  MonadAff m
     => MonadError Error m
+    => Background m
     => Payments m
     -> ShoppingCart m
     -> Orders m
@@ -35,14 +41,38 @@ checkout
     -> m OrderId
 checkout p sc o userId card = do
     cart <- sc.get userId
-    paymentId <- recovering retryPolicy checks (\_ -> p.process (payment cart))
-    orderId <- o.create userId paymentId (cart.cartTotalItems) (cart.cartTotal)
+    paymentId <- processPayment p (payment cart)
+    orderId <- createOrder o userId paymentId (cart.cartTotalItems) (cart.cartTotal)
     void $ try $ sc.delete userId
 
     pure orderId
-        where
-           payment :: CartTotal -> Payment
-           payment cart = {paymentUserId: userId, paymentTotal: (cart.cartTotal), paymentCard: card}
+    where
+       payment :: CartTotal -> Payment
+       payment cart = {paymentUserId: userId, paymentTotal: (cart.cartTotal), paymentCard: card}
+
+createOrder
+    :: forall m
+    .  MonadAff m
+    => MonadError Error m
+    => Background m
+    => Orders m
+    -> UserId
+    -> PaymentId
+    -> List CartItem
+    -> Money
+    -> m OrderId
+createOrder o userId paymentId cartItems cartTotal = backgroundAction $ recovering retryPolicy checks action
+    where
+        backgroundAction :: m OrderId -> m OrderId
+        backgroundAction fa = fa `catchError` \err -> do
+            liftEffect $ log "Creating order failed, rescheduling..."
+            schedule (backgroundAction fa) (Milliseconds 10000.0)
+            throwError err
+
+        action :: RetryStatus -> m OrderId
+        action _ = do
+            liftEffect $ log "Creating order..."
+            o.create userId paymentId cartItems cartTotal
 
 processPayment
     :: forall m
