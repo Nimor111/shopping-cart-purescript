@@ -1,5 +1,10 @@
 module Web.ShoppingCart.Router
         ( router
+        , Route (..)
+        , route
+        , sayHello
+        , insertPeople
+        , errorOut
         )
         where
 
@@ -8,30 +13,55 @@ import Prelude
 import Control.Monad.Error.Class (class MonadThrow)
 import Control.Monad.Except (throwError)
 import Control.Monad.Reader (class MonadAsk, asks)
+import Data.Array as Array
+import Data.Foldable (find) as Foldable
 import Data.Maybe (Maybe(..))
 import Data.Variant (SProxy(..), inj)
 import Effect.Aff.Class (class MonadAff)
 import HTTPure (Response, ok) as HTTPure
+import HTTPure.Path (Path) as HTTPure
 import HTTPure.Request (Request) as HTTPure
 import HTTPure.Response (notFound) as HTTPure
 import Selda.PG.Class (insert_)
-
+import Web.ShoppingCart.App (AppError, App)
 import Web.ShoppingCart.Context (Context)
-import Web.ShoppingCart.App (AppError)
 import Web.ShoppingCart.Database (hoistSelda, people)
+import Web.ShoppingCart.Http.Routes.Brands (brandsRouter)
 
+
+data Route m = Route HTTPure.Path (HTTPure.Request -> m HTTPure.Response)
+
+
+route
+    :: forall m
+    .  HTTPure.Path
+    -> (HTTPure.Request -> m HTTPure.Response)
+    -> Route m
+route = Route
 
 router
     :: ∀ m
     .  MonadAff m
     => MonadAsk Context m
     => MonadThrow AppError m
-    => HTTPure.Request
+    => Array (Route m)
+    -> HTTPure.Request
     -> m HTTPure.Response
-router req@{ path: ["hello"] } = sayHello req
-router req@{ path: ["error"] } = errorOut req
-router req@{ path: ["insert"] } = insertPeople req
-router _ = HTTPure.notFound
+router routes request@{ path } =
+    case Foldable.find (\(Route prefix _) -> startsWith prefix) routes of
+        Just (Route prefix handler) ->
+            handler $ request { path = subpath prefix }
+        Nothing ->
+            HTTPure.notFound
+
+    where
+        startsWith :: HTTPure.Path -> Boolean
+        startsWith prefix =
+            Array.length path >= Array.length prefix &&
+            Array.take (Array.length prefix) path == prefix
+
+        subpath :: HTTPure.Path -> HTTPure.Path
+        subpath prefix = Array.drop (Array.length prefix) path
 
 insertPeople
     :: ∀ m

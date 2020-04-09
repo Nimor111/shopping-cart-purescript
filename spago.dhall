@@ -13,7 +13,8 @@ You can edit this file as you like.
     "selda",
     "uuid",
     "ordered-collections",
-    "aff-retry"
+    "aff-retry",
+    "simple-json"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]

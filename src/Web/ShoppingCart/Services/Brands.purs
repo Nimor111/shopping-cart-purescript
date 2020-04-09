@@ -4,11 +4,10 @@ module Web.ShoppingCart.Services.Brands
 
 import Prelude
 
-import Data.List.Types (List)
 import Web.ShoppingCart.Domain.Brand (Brand)
 
 
 type Brands m =
-    { findAll :: m (List Brand)
+    { findAll :: m (Array Brand)
     , create :: Brand -> m Unit
     }

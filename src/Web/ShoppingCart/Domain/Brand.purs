@@ -4,11 +4,19 @@ module Web.ShoppingCart.Domain.Brand
         , BrandName (..)
         ) where
 
-import Data.UUID (UUID)
+import Prelude
+
+import Simple.JSON as JSON
 
 
-newtype BrandId = BrandId { unBrandId :: UUID }
+newtype BrandId = BrandId { unBrandId :: String }
 newtype BrandName = BrandName { unBrandName :: String }
+
+derive newtype instance readForeignBrandId :: JSON.ReadForeign BrandId
+derive newtype instance writeForeignBrandId :: JSON.WriteForeign BrandId
+
+derive newtype instance readForeignBrandName :: JSON.ReadForeign BrandName
+derive newtype instance writeForeignBrandName :: JSON.WriteForeign BrandName
 
 type Brand =
     { brandId :: BrandId
