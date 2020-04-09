@@ -1,3 +1,5 @@
+-- Thank you to the httpure-extras repos for the ideas on this
+
 module Web.ShoppingCart.Router
         ( router
         , Route (..)
@@ -30,7 +32,6 @@ import Web.ShoppingCart.Http.Routes.Brands (brandsRouter)
 
 
 data Route m = Route HTTPure.Path (HTTPure.Request -> m HTTPure.Response)
-
 
 route
     :: forall m
