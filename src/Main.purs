@@ -13,12 +13,6 @@ import Effect.Class.Console (log, logShow)
 import Web.ShoppingCart.Database (dbConfig, createPeople)
 import Web.ShoppingCart.Server (server)
 
-example :: Aff Unit
-example = do
-    delay (Milliseconds (1000.0))
-    fiber <- forkAff (liftEffect $ log "This is a computation")
-    joinFiber fiber
-
 
 main :: Effect Unit
 main = launchAff_ do
