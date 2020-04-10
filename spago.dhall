@@ -14,7 +14,8 @@ You can edit this file as you like.
     "uuid",
     "ordered-collections",
     "aff-retry",
-    "simple-json"
+    "simple-json",
+    "simple-jwt"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]

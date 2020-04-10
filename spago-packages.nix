@@ -233,6 +233,18 @@ let
         installPhase = "ln -s $src $out";
       };
 
+    "crypto" = pkgs.stdenv.mkDerivation {
+        name = "crypto";
+        version = "v2.0.1";
+        src = pkgs.fetchgit {
+          url = "https://github.com/oreshinya/purescript-crypto.git";
+          rev = "0acc404042b5effa63d5aee08ffcc1b3e1e0e5ce";
+          sha256 = "1cx2xjakgp3jlnqiqf9az3al0wbwazhf2zkzdngzx4lx60r9jxq9";
+        };
+        phases = "installPhase";
+        installPhase = "ln -s $src $out";
+      };
+
     "datetime" = pkgs.stdenv.mkDerivation {
         name = "datetime";
         version = "v4.1.1";
@@ -1104,6 +1116,18 @@ let
           url = "https://github.com/justinwoo/purescript-simple-json.git";
           rev = "d6c4163f6ad65be97b148ebf86c900cb821da5a8";
           sha256 = "1x2f4zq1m9r3vg9hdpjld98jd56w7fss8fzvlrmnrw6xzd1gi456";
+        };
+        phases = "installPhase";
+        installPhase = "ln -s $src $out";
+      };
+
+    "simple-jwt" = pkgs.stdenv.mkDerivation {
+        name = "simple-jwt";
+        version = "v2.0.0";
+        src = pkgs.fetchgit {
+          url = "https://github.com/oreshinya/purescript-simple-jwt.git";
+          rev = "9c79227bdb2ed8cce3fafe2643ceeacaaca3e597";
+          sha256 = "15d2gph12h0g9izyakp310mjl8l8gp2m4ffppiqprfsw1y3gi8xm";
         };
         phases = "installPhase";
         installPhase = "ln -s $src $out";
