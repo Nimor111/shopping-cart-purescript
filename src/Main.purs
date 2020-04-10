@@ -2,12 +2,10 @@ module Main where
 
 import Prelude
 
-import Control.Bind (join)
 import Data.Either (Either(..))
-import Data.Time.Duration (Milliseconds(..))
 import Database.PostgreSQL as PostgreSQL
 import Effect (Effect)
-import Effect.Aff (Aff, delay, forkAff, joinFiber, launchAff_)
+import Effect.Aff (launchAff_)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log, logShow)
 import Web.ShoppingCart.Database (dbConfig, createPeople)
