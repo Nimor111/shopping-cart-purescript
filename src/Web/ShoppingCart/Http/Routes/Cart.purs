@@ -39,7 +39,7 @@ cartRouter
     => ShoppingCart m
     -> HTTPure.Request
     -> m HTTPure.Response
-cartRouter cart req@{ path, method: Get } = getCardByUser (wrap $ path !@ 0) cart req
+cartRouter cart req@{ path, method: Get } = getCartByUser (wrap $ path !@ 0) cart req
 cartRouter cart req@{ path, method: Post, body } = do
     res <- addItemsToCart (wrap $ path !@ 0) body cart req -- take user id from session in the future?
     case res of
@@ -47,7 +47,7 @@ cartRouter cart req@{ path, method: Post, body } = do
         Right v -> HTTPure.ok ""
 cartRouter _ _ = HTTPure.notFound
 
-getCardByUser
+getCartByUser
     :: forall m
     .  MonadAff m
     => MonadThrow AppError m
@@ -55,7 +55,7 @@ getCardByUser
     -> ShoppingCart m
     -> HTTPure.Request
     -> m HTTPure.Response
-getCardByUser userId cart req = do
+getCartByUser userId cart req = do
     liftEffect $ log ("Fetching cart for user with id" <> unwrap userId)
     cartTotal <- cart.get userId
 
