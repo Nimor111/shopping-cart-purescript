@@ -1,6 +1,4 @@
-module Web.ShoppingCart.Http.Routes.Items
-        ( itemsRouter
-        ) where
+module Web.ShoppingCart.Http.Routes.Items where
 
 import Prelude
 
@@ -9,8 +7,8 @@ import Control.Monad.Reader.Class (class MonadAsk)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
-import HTTPure.Request (Request) as HTTPure
 import HTTPure ((!@))
+import HTTPure.Request (Request) as HTTPure
 import HTTPure.Response (Response, notFound, ok') as HTTPure
 import Simple.JSON as JSON
 import Web.ShoppingCart.App (AppError)

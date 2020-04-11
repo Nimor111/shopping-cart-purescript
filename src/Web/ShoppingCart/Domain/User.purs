@@ -6,13 +6,19 @@ module Web.ShoppingCart.Domain.User
       , JwtToken (..)
       ) where
 
+import Data.Newtype (class Newtype)
 import Simple.JSON as JSON
 
 
-newtype UserId = UserId { unUserId :: String }
-newtype UserName = UserName { unUserName :: String }
-newtype Password = Password { unPassword :: String }
-newtype JwtToken = JwtToken { unJwtToken :: String }
+newtype UserId = UserId String
+newtype UserName = UserName String
+newtype Password = Password String
+newtype JwtToken = JwtToken String
+
+derive instance newtypeUserId   :: Newtype UserId   _
+derive instance newtypeUserName :: Newtype UserName _
+derive instance newtypePassword :: Newtype Password _
+derive instance newtypeJwtToken :: Newtype JwtToken _
 
 derive newtype instance readForeignUserId :: JSON.ReadForeign UserId
 derive newtype instance writeForeignUserId :: JSON.WriteForeign UserId
