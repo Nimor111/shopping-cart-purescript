@@ -8,4 +8,5 @@ import Database.PostgreSQL as PostgreSQL
 type Context =
     { conn :: PostgreSQL.Connection
     , other :: String
+    , jwtSecret :: String
     }

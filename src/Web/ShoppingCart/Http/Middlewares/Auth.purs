@@ -4,34 +4,49 @@ module Web.ShoppingCart.Http.Middlewares.Auth
 
 import Prelude
 
-import Control.Monad (liftM1)
+import Control.Monad.Error.Class (class MonadThrow)
 import Control.Monad.Except.Trans (ExceptT(..), except, runExceptT)
+import Control.Monad.Reader.Class (class MonadAsk, asks)
 import Control.Monad.Trans.Class (lift)
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
 import Data.Show (show)
 import Effect (Effect)
 import Effect.Aff (Aff)
+import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import HTTPure.Headers (Headers(..))
 import HTTPure.Lookup ((!!))
 import HTTPure.Request (Request) as HTTPure
-import HTTPure.Response (notFound, badRequest, Response, ResponseM) as HTTPure
-import Node.Simple.Jwt (JwtError(..), decode, fromString)
-import Simple.JSON (class ReadForeign)
-import Web.ShoppingCart.App (App)
+import HTTPure.Response (notFound, badRequest, Response, ResponseM, forbidden) as HTTPure
+import Node.Simple.Jwt (JwtError(..), decode, fromString, Secret)
+import Web.ShoppingCart.App (App, AppError, runApp)
 import Web.ShoppingCart.Context (Context)
 
 
 authMiddleware
-    :: Context -- going to take secret from this eventually
-    -> (HTTPure.Request -> Aff HTTPure.Response)
+    :: ∀ m
+    .  MonadAff m
+    => MonadAsk Context m
+    => (HTTPure.Request -> m HTTPure.Response)
     -> HTTPure.Request
-    -> HTTPure.ResponseM
-authMiddleware ctx handler request = (liftEffect $ getAndVerifyAuth request) >>= \verified ->
+    -> m HTTPure.Response
+authMiddleware handler request =
+    authenticate handler request
+
+authenticate
+    :: ∀ m
+    .  MonadAff m
+    => MonadAsk Context m
+    => (HTTPure.Request -> m HTTPure.Response)
+    -> HTTPure.Request
+    -> m HTTPure.Response
+authenticate handler request = do
+    secret <- asks _.jwtSecret
+    verified <- liftEffect $ getAndVerifyAuth secret request
     case verified of
-         Right _  -> handler request
-         Left  err  -> HTTPure.badRequest $ show err
+        Right _  -> handler request
+        Left  err  -> HTTPure.forbidden
 
 lookupHeaderEither :: Headers -> Either JwtError String
 lookupHeaderEither headers =
@@ -40,9 +55,10 @@ lookupHeaderEither headers =
       Nothing -> Left InvalidTokenError
 
 getAndVerifyAuth
-    :: HTTPure.Request
+    :: Secret
+    -> HTTPure.Request
     -> Effect (Either JwtError String)
-getAndVerifyAuth { headers } = runExceptT $ do
+getAndVerifyAuth secret { headers } = runExceptT $ do
     token <- ExceptT $ pure $ lookupHeaderEither headers
 
-    ExceptT $ decode "tOpSeCrEt" (fromString token)
+    ExceptT $ decode secret (fromString token)

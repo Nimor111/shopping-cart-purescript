@@ -8,7 +8,6 @@ import Data.Time.Duration (Milliseconds(..))
 import Effect.Exception (error)
 
 import Control.Monad.Error.Class (class MonadError, try, catchError, throwError)
-import Data.List.Types (List)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Aff.Retry (RetryStatus, recovering)
 import Effect.Class (liftEffect)
@@ -58,7 +57,7 @@ createOrder
     => Orders m
     -> UserId
     -> PaymentId
-    -> List CartItem
+    -> Array CartItem
     -> Money
     -> m OrderId
 createOrder o userId paymentId cartItems cartTotal = backgroundAction $ recovering retryPolicy checks action

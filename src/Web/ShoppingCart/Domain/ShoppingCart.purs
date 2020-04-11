@@ -8,7 +8,6 @@ module Web.ShoppingCart.Domain.ShoppingCart
 
 import Simple.JSON as JSON
 
-import Data.List.Types (List)
 import Data.Map (Map)
 import Web.ShoppingCart.Domain.Item (Item, ItemId, Money(..))
 
@@ -32,6 +31,6 @@ type CartItem =
     }
 
 type CartTotal =
-    { cartTotalItems :: List CartItem
+    { cartTotalItems :: Array CartItem
     , cartTotal :: Money
     }

@@ -22,4 +22,4 @@ main = launchAff_ do
          createPeople conn
          log "Created people..."
 
-         void $ liftEffect $ server { conn, other: "other" }
+         void $ liftEffect $ server { conn, other: "other", jwtSecret: "tOpSeCrEt" }

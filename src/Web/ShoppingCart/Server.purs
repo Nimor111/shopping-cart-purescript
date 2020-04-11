@@ -7,7 +7,6 @@ import Prelude
 
 import Control.Monad.Error.Class (class MonadThrow)
 import Control.Monad.Reader.Class (class MonadAsk)
-import Effect.Aff (Aff)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class.Console as Console
 import HTTPure (ServerM, serve) as HTTPure
@@ -17,8 +16,7 @@ import Web.ShoppingCart.App (App, AppError, runApp)
 import Web.ShoppingCart.Context (Context)
 import Web.ShoppingCart.Error (handleGenericError)
 import Web.ShoppingCart.Http.Middlewares.Auth (authMiddleware)
-import Web.ShoppingCart.Http.Routes.Brands (brandsRouter)
-import Web.ShoppingCart.Router (Route(..), router, route, errorOut, insertPeople, sayHello)
+import Web.ShoppingCart.Router (Route, router, route, errorOut, insertPeople, sayHello)
 import Web.ShoppingCart.Services.Brands (Brands)
 
 
@@ -27,8 +25,8 @@ appMiddleware
    -> (HTTPure.Request -> App HTTPure.Response)
    -> HTTPure.Request
    -> HTTPure.ResponseM
-appMiddleware ctx r request =
-    runApp ctx (r request) >>= handleGenericError
+appMiddleware ctx handler request =
+    runApp ctx (handler request) >>= handleGenericError
 
 appRoutes
     :: forall m
@@ -39,9 +37,20 @@ appRoutes
     => Array (Route m)
 appRoutes =
     [ route ["hello"] sayHello
-    , route ["error"] errorOut
+    , route ["error"] (authMiddleware errorOut)
     , route ["insert"] insertPeople
     {--, route ["brands"] (brandsRouter b)--}
+    ]
+
+authRoutes
+    :: forall m
+    .  MonadAff m
+    => MonadAsk Context m
+    => MonadThrow AppError m
+    {--=> Brands m--}
+    => Array (Route m)
+authRoutes =
+    [ route ["insert"] insertPeople
     ]
 
 type Services m =
@@ -53,4 +62,6 @@ type Services m =
 {--server services ctx = HTTPure.serve 8080 (appMiddleware ctx (router (appRoutes services))) $ Console.log "Server up on port 8080"--}
 
 server :: Context -> HTTPure.ServerM
-server ctx = HTTPure.serve 8080 ((authMiddleware ctx <<< appMiddleware ctx) (router appRoutes)) $ Console.log "Server up on port 8080"
+server ctx = HTTPure.serve 8080 middlewares $ Console.log "Server up on port 8080"
+    where
+        middlewares = appMiddleware ctx (router appRoutes)
