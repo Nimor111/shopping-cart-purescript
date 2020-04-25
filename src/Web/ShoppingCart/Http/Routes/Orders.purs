@@ -20,10 +20,10 @@ import Web.ShoppingCart.Http.Routes.Headers (responseHeaders)
 import Web.ShoppingCart.Services.Orders (Orders)
 
 ordersRouter
-    :: forall m
+    :: forall r m
     .  MonadAff m
     => MonadAsk Context m
-    => MonadThrow AppError m
+    => MonadThrow (AppError r) m
     => Orders m
     -> HTTPure.Request
     -> m HTTPure.Response
@@ -33,10 +33,10 @@ ordersRouter orders req@{ path, method: Get } = case path !? 1 of
 ordersRouter _ _ = HTTPure.notFound
 
 getOrder
-    :: forall m
+    :: forall r m
     .  MonadAff m
     => MonadAsk Context m
-    => MonadThrow AppError m
+    => MonadThrow (AppError r) m
     => UserId
     -> OrderId
     -> Orders m
@@ -48,10 +48,10 @@ getOrder userId orderId orders req = do
     HTTPure.ok' responseHeaders (JSON.writeJSON order)
 
 getOrdersByUser
-    :: forall m
+    :: forall r m
     .  MonadAff m
     => MonadAsk Context m
-    => MonadThrow AppError m
+    => MonadThrow (AppError r) m
     => UserId
     -> Orders m
     -> HTTPure.Request

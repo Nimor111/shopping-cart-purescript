@@ -35,3 +35,7 @@ exponentialBackoff
     -> Retry.RetryPolicy
 exponentialBackoff base = Retry.retryPolicy \(Retry.RetryStatus { iterNumber: n }) ->
     Just $ Milliseconds $ unwrap (fromDuration base) * pow 2.0 (toNumber n)
+
+type RetryError =
+    { error :: Error
+    }

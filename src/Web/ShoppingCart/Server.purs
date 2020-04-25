@@ -21,18 +21,19 @@ import Web.ShoppingCart.Services.Brands (Brands)
 
 
 appMiddleware
-   :: Context
-   -> (HTTPure.Request -> App HTTPure.Response)
+   :: forall r
+   .  Context
+   -> (HTTPure.Request -> App r HTTPure.Response)
    -> HTTPure.Request
    -> HTTPure.ResponseM
 appMiddleware ctx handler request =
     runApp ctx (handler request) >>= handleGenericError
 
 appRoutes
-    :: forall m
+    :: forall r m
     .  MonadAff m
     => MonadAsk Context m
-    => MonadThrow AppError m
+    => MonadThrow (AppError r) m
     {--=> Brands m--}
     => Array (Route m)
 appRoutes =
@@ -43,10 +44,10 @@ appRoutes =
     ]
 
 authRoutes
-    :: forall m
+    :: forall r m
     .  MonadAff m
     => MonadAsk Context m
-    => MonadThrow AppError m
+    => MonadThrow (AppError r) m
     {--=> Brands m--}
     => Array (Route m)
 authRoutes =

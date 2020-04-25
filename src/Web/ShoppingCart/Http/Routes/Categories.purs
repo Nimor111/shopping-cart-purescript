@@ -19,10 +19,10 @@ import Web.ShoppingCart.Services.Categories (Categories)
 
 
 categoriesRouter
-    :: forall m
+    :: forall r m
     .  MonadAff m
     => MonadAsk Context m
-    => MonadThrow AppError m
+    => MonadThrow (AppError r) m
     => Categories m
     -> HTTPure.Request
     -> m HTTPure.Response
@@ -30,10 +30,10 @@ categoriesRouter categories req@{ path: [""] } = getCategories categories req
 categoriesRouter _ _ = HTTPure.notFound
 
 getCategories
-    :: forall m
+    :: forall r m
     .  MonadAff m
     => MonadAsk Context m
-    => MonadThrow AppError m
+    => MonadThrow (AppError r) m
     => Categories m
     -> HTTPure.Request
     -> m HTTPure.Response

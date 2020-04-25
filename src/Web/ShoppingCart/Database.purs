@@ -13,23 +13,24 @@ import Control.Monad.Except (ExceptT, throwError)
 import Control.Monad.Reader (class MonadAsk, ReaderT)
 import Data.Maybe (Maybe(..), maybe)
 import Data.Variant (Variant, inj)
+import Database.PostgreSQL (PGError)
+import Database.PostgreSQL as PostgreSQL
 import Effect.Aff (Aff, error)
 import Effect.Aff.Class (class MonadAff)
 import Selda.Query.Class (hoistSeldaWith)
 import Selda.Table (Table(..))
-import Database.PostgreSQL (PGError)
-import Database.PostgreSQL as PostgreSQL
-
-import Web.ShoppingCart.App (_pgError)
+import Web.ShoppingCart.App (AppError)
+import Web.ShoppingCart.Error (databaseError)
 
 
 hoistSelda
-  :: ∀ e r m
-  .  MonadAsk { conn ∷ PostgreSQL.Connection | r } m
-  => MonadThrow (Variant ( pgError ∷ PGError | e )) m
+  :: ∀ e r1 r2 m
+  .  MonadAsk { conn ∷ PostgreSQL.Connection | r1 } m
+  {--=> MonadThrow (Variant ( pgError ∷ PGError | e )) m--}
+  => MonadThrow (AppError r2) m
   => MonadAff m
   => ExceptT PGError (ReaderT PostgreSQL.Connection Aff) ~> m
-hoistSelda = hoistSeldaWith (inj _pgError) (_.conn)
+hoistSelda = hoistSeldaWith (\err -> databaseError err) (_.conn)
 
 dbConfig :: PostgreSQL.PoolConfiguration
 dbConfig = (PostgreSQL.defaultPoolConfiguration "shoppingcart")

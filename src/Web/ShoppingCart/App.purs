@@ -2,7 +2,6 @@ module Web.ShoppingCart.App
         ( App
         , AppError
         , runApp
-        , _pgError
         )
         where
 
@@ -20,19 +19,16 @@ import Database.PostgreSQL (PGError)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect)
+import Effect.Exception (Error)
 import Type.Equality (class TypeEquals, from)
 import Web.ShoppingCart.Context (Context)
+import Web.ShoppingCart.Error (RequestError, type (+))
 
 
-type AppError = Variant
-    ( pgError :: PGError
-    , error :: String
-    )
+type AppError r = Variant (RequestError + r)
 
-_pgError = SProxy :: SProxy "pgError"
+type App r = ReaderT Context (ExceptT (AppError r) Aff)
 
-type App = ReaderT Context (ExceptT AppError Aff)
-
-runApp :: ∀ a. Context -> App a -> Aff (Either AppError a)
+runApp :: ∀ a r. Context -> App r a -> Aff (Either (AppError r) a)
 runApp ctx m = runExceptT $ runReaderT m ctx
 

@@ -20,6 +20,7 @@ import Data.Foldable (find) as Foldable
 import Data.Maybe (Maybe(..))
 import Data.Variant (SProxy(..), inj)
 import Effect.Aff.Class (class MonadAff)
+import Effect.Exception (error)
 import HTTPure (Response, ok) as HTTPure
 import HTTPure.Path (Path) as HTTPure
 import HTTPure.Request (Request) as HTTPure
@@ -29,6 +30,7 @@ import Web.ShoppingCart.App (AppError, App)
 import Web.ShoppingCart.Context (Context)
 import Web.ShoppingCart.Database (hoistSelda, people)
 import Web.ShoppingCart.Http.Routes.Brands (brandsRouter)
+import Web.ShoppingCart.Error (unknownError)
 
 
 data Route m = Route HTTPure.Path (HTTPure.Request -> m HTTPure.Response)
@@ -41,10 +43,10 @@ route
 route = Route
 
 router
-    :: ∀ m
+    :: ∀ r m
     .  MonadAff m
     => MonadAsk Context m
-    => MonadThrow AppError m
+    => MonadThrow (AppError r) m
     => Array (Route m)
     -> HTTPure.Request
     -> m HTTPure.Response
@@ -65,10 +67,10 @@ router routes request@{ path } =
         subpath prefix = Array.drop (Array.length prefix) path
 
 insertPeople
-    :: ∀ m
+    :: ∀ r m
     .  MonadAff m
     => MonadAsk Context m
-    => MonadThrow AppError m
+    => MonadThrow (AppError r) m
     => HTTPure.Request
     -> m HTTPure.Response
 insertPeople _ =
@@ -85,22 +87,22 @@ insertPeople _ =
             ]
 
 errorOut
-    :: ∀ m
+    :: ∀ r m
     .  MonadAff m
     => MonadAsk Context m
-    => MonadThrow AppError m
+    => MonadThrow (AppError r) m
     => HTTPure.Request
     -> m HTTPure.Response
 errorOut _ = do
     other <- asks _.other
 
-    throwError ((inj (SProxy :: SProxy "error")) "this is an error")
+    throwError $ unknownError $ error "this is an error"
 
 sayHello
-    :: ∀ m
+    :: ∀ r m
     .  MonadAff m
     => MonadAsk Context m
-    => MonadThrow AppError m
+    => MonadThrow (AppError r) m
     => HTTPure.Request
     -> m HTTPure.Response
 sayHello _ = do

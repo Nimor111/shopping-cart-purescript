@@ -19,10 +19,10 @@ import Web.ShoppingCart.Services.Brands (Brands)
 
 
 brandsRouter
-    :: forall m
+    :: forall r m
     .  MonadAff m
     => MonadAsk Context m
-    => MonadThrow AppError m
+    => MonadThrow (AppError r) m
     => Brands m
     -> HTTPure.Request
     -> m HTTPure.Response
@@ -30,10 +30,10 @@ brandsRouter brands req@{ path: [""] } = getBrands brands req
 brandsRouter _ _ = HTTPure.notFound
 
 getBrands
-    :: forall m
+    :: forall r m
     .  MonadAff m
     => MonadAsk Context m
-    => MonadThrow AppError m
+    => MonadThrow (AppError r) m
     => Brands m
     -> HTTPure.Request
     -> m HTTPure.Response

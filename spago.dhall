@@ -15,7 +15,8 @@ You can edit this file as you like.
     "ordered-collections",
     "aff-retry",
     "simple-json",
-    "simple-jwt"
+    "simple-jwt",
+    "checked-exceptions"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]

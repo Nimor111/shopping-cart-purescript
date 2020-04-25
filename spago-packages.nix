@@ -173,6 +173,18 @@ let
         installPhase = "ln -s $src $out";
       };
 
+    "checked-exceptions" = pkgs.stdenv.mkDerivation {
+        name = "checked-exceptions";
+        version = "v3.1.0";
+        src = pkgs.fetchgit {
+          url = "https://github.com/natefaubion/purescript-checked-exceptions.git";
+          rev = "b73844cfb6e128afb521a3d5aa61410fbe9992dc";
+          sha256 = "1kfyihhsaz8g03vzvyir89adyzlcw4m95fr3xsmia8sd1vsb8646";
+        };
+        phases = "installPhase";
+        installPhase = "ln -s $src $out";
+      };
+
     "console" = pkgs.stdenv.mkDerivation {
         name = "console";
         version = "v4.3.0";

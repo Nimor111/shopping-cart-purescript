@@ -19,10 +19,10 @@ import Web.ShoppingCart.Services.Items (Items)
 
 
 itemsRouter
-    :: forall m
+    :: forall r m
     .  MonadAff m
     => MonadAsk Context m
-    => MonadThrow AppError m
+    => MonadThrow (AppError r) m
     => Items m
     -> HTTPure.Request
     -> m HTTPure.Response
@@ -30,10 +30,10 @@ itemsRouter items req@{ path: [""] } = getItemsByBrandName items req
 itemsRouter _ _ = HTTPure.notFound
 
 getItemsByBrandName
-    :: forall m
+    :: forall r m
     .  MonadAff m
     => MonadAsk Context m
-    => MonadThrow AppError m
+    => MonadThrow (AppError r) m
     => Items m
     -> HTTPure.Request
     -> m HTTPure.Response

@@ -28,9 +28,9 @@ import Web.ShoppingCart.Effects.Background (class Background, schedule)
 data OrderError = OrderError
 
 checkout
-    :: forall m
+    :: forall e m
     .  MonadAff m
-    => MonadError Error m
+    => MonadError e m
     => Background m
     => Payments m
     -> ShoppingCart m
@@ -50,9 +50,9 @@ checkout p sc o userId card = do
        payment cart = {paymentUserId: userId, paymentTotal: (cart.cartTotal), paymentCard: card}
 
 createOrder
-    :: forall m
+    :: forall e m
     .  MonadAff m
-    => MonadError Error m
+    => MonadError e m
     => Background m
     => Orders m
     -> UserId
@@ -74,9 +74,9 @@ createOrder o userId paymentId cartItems cartTotal = backgroundAction $ recoveri
             o.create userId paymentId cartItems cartTotal
 
 processPayment
-    :: forall m
+    :: forall e m
     .  MonadAff m
-    => MonadError Error m
+    => MonadError e m
     => Payments m
     -> Payment
     -> m PaymentId

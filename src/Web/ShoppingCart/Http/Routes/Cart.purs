@@ -28,15 +28,16 @@ import Web.ShoppingCart.Context (Context)
 import Web.ShoppingCart.Domain.Item (ItemId(..))
 import Web.ShoppingCart.Domain.ShoppingCart (Cart(..))
 import Web.ShoppingCart.Domain.User (UserId(..))
+import Web.ShoppingCart.Error (jsonDecodeError)
 import Web.ShoppingCart.Http.Routes.Headers (responseHeaders)
 import Web.ShoppingCart.Services.ShoppingCart (ShoppingCart)
 
 
 cartRouter
-    :: forall m
+    :: forall r m
     .  MonadAff m
     => MonadAsk Context m
-    => MonadThrow AppError m
+    => MonadThrow (AppError r) m
     => ShoppingCart m
     -> HTTPure.Request
     -> m HTTPure.Response
@@ -44,21 +45,21 @@ cartRouter cart req@{ path, method: Get } = getCartByUser (wrap $ path !@ 0) car
 cartRouter cart req@{ path, method: Post, body } = do
     res <- addItemsToCart (wrap $ path !@ 0) body cart req -- take user id from session in the future?
     case res of
-        Left err -> throwError ((inj (SProxy :: SProxy "error")) (show err))
+        Left err -> throwError $ jsonDecodeError err
         Right v -> HTTPure.ok ""
 cartRouter cart req@{ path, method: Put, body } = do
     res <- updateCart (wrap $ path !@ 0) body cart req
 
     case res of
-        Left err -> throwError ((inj (SProxy :: SProxy "error")) (show err))
+        Left err -> throwError $ jsonDecodeError err
         Right v -> HTTPure.ok ""
 cartRouter cart req@{ path, method: Delete } = removeItemFromCart (wrap $ path !@ 0) (wrap $ path !@ 1) cart req
 cartRouter _ _ = HTTPure.notFound
 
 getCartByUser
-    :: forall m
+    :: forall r m
     .  MonadAff m
-    => MonadThrow AppError m
+    => MonadThrow (AppError r) m
     => UserId
     -> ShoppingCart m
     -> HTTPure.Request
@@ -70,9 +71,9 @@ getCartByUser userId cart req = do
     HTTPure.ok' responseHeaders (JSON.writeJSON cartTotal)
 
 addItemsToCart
-    :: forall m
+    :: forall r m
     .  MonadAff m
-    => MonadThrow AppError m
+    => MonadThrow (AppError r) m
     => UserId
     -> String
     -> ShoppingCart m
@@ -86,9 +87,9 @@ addItemsToCart userId body cart req = runExceptT $ do
         addItems newCart = traverse_ (\item -> cart.add userId item.itemId item.quantity) (unwrap newCart)
 
 updateCart
-    :: forall m
+    :: forall r m
     .  MonadAff m
-    => MonadThrow AppError m
+    => MonadThrow (AppError r) m
     => UserId
     -> String
     -> ShoppingCart m
@@ -99,9 +100,9 @@ updateCart userId body cart req = runExceptT $ do
     ExceptT $ sequence $ Right (cart.update userId existingCart)
 
 removeItemFromCart
-    :: forall m
+    :: forall r m
     .  MonadAff m
-    => MonadThrow AppError m
+    => MonadThrow (AppError r) m
     => UserId
     -> ItemId
     -> ShoppingCart m
