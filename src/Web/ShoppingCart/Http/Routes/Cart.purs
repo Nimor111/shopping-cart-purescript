@@ -20,11 +20,12 @@ import HTTPure ((!@))
 import HTTPure.Body (class Body)
 import HTTPure.Method (Method(..))
 import HTTPure.Request (Request) as HTTPure
-import HTTPure.Response (Response, notFound, ok, ok') as HTTPure
+import HTTPure.Response (Response, noContent', notFound, ok, ok') as HTTPure
 import Simple.JSON (class ReadForeign)
 import Simple.JSON as JSON
 import Web.ShoppingCart.App (AppError)
 import Web.ShoppingCart.Context (Context)
+import Web.ShoppingCart.Domain.Item (ItemId(..))
 import Web.ShoppingCart.Domain.ShoppingCart (Cart(..))
 import Web.ShoppingCart.Domain.User (UserId(..))
 import Web.ShoppingCart.Http.Routes.Headers (responseHeaders)
@@ -45,6 +46,13 @@ cartRouter cart req@{ path, method: Post, body } = do
     case res of
         Left err -> throwError ((inj (SProxy :: SProxy "error")) (show err))
         Right v -> HTTPure.ok ""
+cartRouter cart req@{ path, method: Put, body } = do
+    res <- updateCart (wrap $ path !@ 0) body cart req
+
+    case res of
+        Left err -> throwError ((inj (SProxy :: SProxy "error")) (show err))
+        Right v -> HTTPure.ok ""
+cartRouter cart req@{ path, method: Delete } = removeItemFromCart (wrap $ path !@ 0) (wrap $ path !@ 1) cart req
 cartRouter _ _ = HTTPure.notFound
 
 getCartByUser
@@ -76,3 +84,30 @@ addItemsToCart userId body cart req = runExceptT $ do
     where
         addItems :: Cart -> m Unit
         addItems newCart = traverse_ (\item -> cart.add userId item.itemId item.quantity) (unwrap newCart)
+
+updateCart
+    :: forall m
+    .  MonadAff m
+    => MonadThrow AppError m
+    => UserId
+    -> String
+    -> ShoppingCart m
+    -> HTTPure.Request
+    -> m (Either (NonEmptyList ForeignError) Unit)
+updateCart userId body cart req = runExceptT $ do
+    (existingCart :: Cart) <- ExceptT $ pure $ JSON.readJSON body
+    ExceptT $ sequence $ Right (cart.update userId existingCart)
+
+removeItemFromCart
+    :: forall m
+    .  MonadAff m
+    => MonadThrow AppError m
+    => UserId
+    -> ItemId
+    -> ShoppingCart m
+    -> HTTPure.Request
+    -> m HTTPure.Response
+removeItemFromCart userId itemId cart req = do
+    cart.removeItem userId itemId
+
+    HTTPure.noContent' responseHeaders

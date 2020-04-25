@@ -8,16 +8,21 @@ module Web.ShoppingCart.Domain.Item
         , Money (..)
         ) where
 
+import Data.Newtype (class Newtype)
 import Simple.JSON as JSON
-
 import Web.ShoppingCart.Domain.Brand (Brand, BrandId)
 import Web.ShoppingCart.Domain.Category (Category, CategoryId)
 
 
-newtype ItemId = ItemId { unItemId :: String }
-newtype ItemName = ItemName { unItemName :: String }
-newtype ItemDescription = ItemDescription { unItemDescription :: String }
-newtype Money = Money { unMoney :: Number }
+newtype ItemId = ItemId String
+newtype ItemName = ItemName String
+newtype ItemDescription = ItemDescription String
+newtype Money = Money Number
+
+derive instance newtypeItemId   :: Newtype ItemId   _
+derive instance newtypeItemName :: Newtype ItemName _
+derive instance newtypeItemDescription :: Newtype ItemDescription _
+derive instance newtypeMoney :: Newtype Money _
 
 derive newtype instance readForeignItemId :: JSON.ReadForeign ItemId
 derive newtype instance writeForeignItemId :: JSON.WriteForeign ItemId
