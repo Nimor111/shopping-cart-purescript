@@ -18,7 +18,7 @@ import Control.Monad.Reader (class MonadAsk, asks)
 import Data.Array as Array
 import Data.Foldable (find) as Foldable
 import Data.Maybe (Maybe(..))
-import Data.Variant (SProxy(..), inj)
+import Data.Variant (SProxy(..), Variant, inj)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Exception (error)
 import HTTPure (Response, ok) as HTTPure
@@ -29,8 +29,8 @@ import Selda.PG.Class (insert_)
 import Web.ShoppingCart.App (AppError, App)
 import Web.ShoppingCart.Context (Context)
 import Web.ShoppingCart.Database (hoistSelda, people)
+import Web.ShoppingCart.Error (UnknownError, unknownError, type (+))
 import Web.ShoppingCart.Http.Routes.Brands (brandsRouter)
-import Web.ShoppingCart.Error (unknownError)
 
 
 data Route m = Route HTTPure.Path (HTTPure.Request -> m HTTPure.Response)
@@ -90,7 +90,7 @@ errorOut
     :: ∀ r m
     .  MonadAff m
     => MonadAsk Context m
-    => MonadThrow (AppError r) m
+    => MonadThrow (Variant (UnknownError + r)) m
     => HTTPure.Request
     -> m HTTPure.Response
 errorOut _ = do

@@ -11,7 +11,7 @@ import Data.List.Types (NonEmptyList(..))
 import Data.Newtype (un, unwrap, wrap)
 import Data.Traversable (sequence)
 import Data.Unit (Unit)
-import Data.Variant (inj, SProxy(..))
+import Data.Variant (SProxy(..), Variant, inj)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
@@ -28,7 +28,7 @@ import Web.ShoppingCart.Context (Context)
 import Web.ShoppingCart.Domain.Item (ItemId(..))
 import Web.ShoppingCart.Domain.ShoppingCart (Cart(..))
 import Web.ShoppingCart.Domain.User (UserId(..))
-import Web.ShoppingCart.Error (jsonDecodeError)
+import Web.ShoppingCart.Error (JsonDecodeError, jsonDecodeError, type (+))
 import Web.ShoppingCart.Http.Routes.Headers (responseHeaders)
 import Web.ShoppingCart.Services.ShoppingCart (ShoppingCart)
 
@@ -37,7 +37,7 @@ cartRouter
     :: forall r m
     .  MonadAff m
     => MonadAsk Context m
-    => MonadThrow (AppError r) m
+    => MonadThrow (Variant (JsonDecodeError + r)) m
     => ShoppingCart m
     -> HTTPure.Request
     -> m HTTPure.Response
@@ -59,7 +59,6 @@ cartRouter _ _ = HTTPure.notFound
 getCartByUser
     :: forall r m
     .  MonadAff m
-    => MonadThrow (AppError r) m
     => UserId
     -> ShoppingCart m
     -> HTTPure.Request
@@ -73,7 +72,7 @@ getCartByUser userId cart req = do
 addItemsToCart
     :: forall r m
     .  MonadAff m
-    => MonadThrow (AppError r) m
+    => MonadThrow (Variant (JsonDecodeError + r)) m
     => UserId
     -> String
     -> ShoppingCart m
@@ -89,7 +88,7 @@ addItemsToCart userId body cart req = runExceptT $ do
 updateCart
     :: forall r m
     .  MonadAff m
-    => MonadThrow (AppError r) m
+    => MonadThrow (Variant (JsonDecodeError + r)) m
     => UserId
     -> String
     -> ShoppingCart m
@@ -102,7 +101,7 @@ updateCart userId body cart req = runExceptT $ do
 removeItemFromCart
     :: forall r m
     .  MonadAff m
-    => MonadThrow (AppError r) m
+    => MonadThrow (Variant (JsonDecodeError + r)) m
     => UserId
     -> ItemId
     -> ShoppingCart m
