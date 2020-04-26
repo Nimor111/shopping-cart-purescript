@@ -5,7 +5,7 @@ module Web.ShoppingCart.Server
 
 import Prelude
 
-import Control.Monad.Error.Class (class MonadThrow)
+import Control.Monad.Error.Class (class MonadError, class MonadThrow)
 import Control.Monad.Reader.Class (class MonadAsk)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class.Console as Console
@@ -33,12 +33,12 @@ appRoutes
     :: forall r m
     .  MonadAff m
     => MonadAsk Context m
-    => MonadThrow (AppError r) m
+    => MonadError (AppError r) m
     {--=> Brands m--}
     => Array (Route m)
 appRoutes =
     [ route ["hello"] sayHello
-    , route ["error"] (authMiddleware errorOut)
+    , route ["error"] errorOut
     , route ["insert"] insertPeople
     {--, route ["brands"] (brandsRouter b)--}
     ]

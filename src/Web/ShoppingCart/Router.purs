@@ -12,14 +12,18 @@ module Web.ShoppingCart.Router
 
 import Prelude
 
-import Control.Monad.Error.Class (class MonadThrow)
+import Control.Monad.Error.Class (class MonadError, class MonadThrow)
 import Control.Monad.Except (throwError)
 import Control.Monad.Reader (class MonadAsk, asks)
 import Data.Array as Array
 import Data.Foldable (find) as Foldable
 import Data.Maybe (Maybe(..))
+import Data.Show (show)
 import Data.Variant (SProxy(..), Variant, inj)
 import Effect.Aff.Class (class MonadAff)
+import Effect.Aff.Retry (RetryStatus(..), recovering)
+import Effect.Class (liftEffect)
+import Effect.Console (log)
 import Effect.Exception (error)
 import HTTPure (Response, ok) as HTTPure
 import HTTPure.Path (Path) as HTTPure
@@ -31,6 +35,7 @@ import Web.ShoppingCart.Context (Context)
 import Web.ShoppingCart.Database (hoistSelda, people)
 import Web.ShoppingCart.Error (UnknownError, unknownError, type (+))
 import Web.ShoppingCart.Http.Routes.Brands (brandsRouter)
+import Web.ShoppingCart.Retry (checks, retryPolicy)
 
 
 data Route m = Route HTTPure.Path (HTTPure.Request -> m HTTPure.Response)
@@ -90,13 +95,17 @@ errorOut
     :: ∀ r m
     .  MonadAff m
     => MonadAsk Context m
-    => MonadThrow (Variant (UnknownError + r)) m
+    => MonadError (Variant (UnknownError + r)) m
     => HTTPure.Request
     -> m HTTPure.Response
-errorOut _ = do
-    other <- asks _.other
+errorOut _ = recovering retryPolicy checks action
+    where
+        action :: RetryStatus -> m HTTPure.Response
+        action (RetryStatus { iterNumber: n }) = do
+            liftEffect $ log ("Erroring out attempt: " <> show n)
+            other <- asks _.other
 
-    throwError $ unknownError $ error "this is an error"
+            throwError $ unknownError $ error "this is an error"
 
 sayHello
     :: ∀ r m
