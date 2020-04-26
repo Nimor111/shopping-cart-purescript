@@ -6,11 +6,15 @@ module Web.ShoppingCart.Domain.Brand
 
 import Prelude
 
+import Data.Newtype (class Newtype)
 import Simple.JSON as JSON
 
 
-newtype BrandId = BrandId { unBrandId :: String }
-newtype BrandName = BrandName { unBrandName :: String }
+newtype BrandId = BrandId String
+newtype BrandName = BrandName String
+
+derive instance newtypeBrandId :: Newtype BrandId _
+derive instance newtypeBrandName :: Newtype BrandName _
 
 derive newtype instance readForeignBrandId :: JSON.ReadForeign BrandId
 derive newtype instance writeForeignBrandId :: JSON.WriteForeign BrandId

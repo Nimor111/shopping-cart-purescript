@@ -4,11 +4,14 @@ module Web.ShoppingCart.Domain.Category
         , CategoryName (..)
         ) where
 
+import Data.Newtype (class Newtype)
 import Simple.JSON as JSON
 
+newtype CategoryId = CategoryId String
+newtype CategoryName = CategoryName String
 
-newtype CategoryId = CategoryId { unCategoryId :: String }
-newtype CategoryName = CategoryName { unCategoryName :: String }
+derive instance newtypeCategoryId :: Newtype CategoryId _
+derive instance newtypeCategoryName :: Newtype CategoryName _
 
 derive newtype instance readForeignCategoryId :: JSON.ReadForeign CategoryId
 derive newtype instance writeForeignCategoryId :: JSON.WriteForeign CategoryId

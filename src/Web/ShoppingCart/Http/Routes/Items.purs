@@ -4,6 +4,7 @@ import Prelude
 
 import Control.Monad.Error.Class (class MonadThrow)
 import Control.Monad.Reader.Class (class MonadAsk)
+import Data.Newtype (wrap)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
@@ -39,6 +40,6 @@ getItemsByBrandName
     -> m HTTPure.Response
 getItemsByBrandName i req = do
     liftEffect $ log "Fetching all items by brand name..."
-    items <- i.findBy (BrandName { unBrandName: (req.query !@ "brand") })
+    items <- i.findBy (wrap (req.query !@ "brand"))
 
     HTTPure.ok' responseHeaders (JSON.writeJSON items)
