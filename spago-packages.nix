@@ -19,11 +19,11 @@ let
 
     "aff-retry" = pkgs.stdenv.mkDerivation {
         name = "aff-retry";
-        version = "v1.2.1";
+        version = "2f36dd0ecba206a24a5f03f754187c99c6c45b1b";
         src = pkgs.fetchgit {
-          url = "https://github.com/Unisay/purescript-aff-retry.git";
-          rev = "936fad803e3610f149df724ead288657a905cb84";
-          sha256 = "08651ly153ywzviab0ipd0zrhwdr8nz4xfym45dlpbgabgrh8pra";
+          url = "https://github.com/Nimor111/purescript-aff-retry.git";
+          rev = "2f36dd0ecba206a24a5f03f754187c99c6c45b1b";
+          sha256 = "0h1s9gafbxmf28iqka2mqnvs2v2py1456abkli9fxd2mfbsacshl";
         };
         phases = "installPhase";
         installPhase = "ln -s $src $out";
