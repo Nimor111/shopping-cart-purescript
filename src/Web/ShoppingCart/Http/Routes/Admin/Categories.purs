@@ -54,7 +54,7 @@ createCategory categories body = runExceptT $ do
     ExceptT $ sequence $ Right (categories.create $ {categoryId: (wrap $ show uuid), categoryName: categoryName})
 
     where
-        mapJsonError :: forall r1. String -> Either (Variant (JsonDecodeError + r1)) CategoryName
+        mapJsonError :: String -> Either (Variant (JsonDecodeError + r)) CategoryName
         mapJsonError body = case JSON.readJSON body of
             Left errors -> Left $ jsonDecodeError errors
             Right v -> Right v

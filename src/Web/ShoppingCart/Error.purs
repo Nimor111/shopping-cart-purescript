@@ -5,6 +5,7 @@ module Web.ShoppingCart.Error
     , OrderNotFoundError (..)
     , OrderCreateFailedError (..)
     , LoginError (..)
+    , StringRefineError (..)
     , JwtTokenMissingError (..)
     , PaymentFailedError (..)
     , DatabaseError (..)
@@ -20,6 +21,7 @@ module Web.ShoppingCart.Error
     , loginError
     , jwtTokenMissingError
     , userNameInUseError
+    , stringRefineError
     )
     where
 
@@ -28,6 +30,8 @@ import Prelude
 import Control.Monad.Except.Checked (handleError)
 import Data.Either (Either, either)
 import Data.List.Types (NonEmptyList(..))
+import Data.Refinery.Core (EvalTree)
+import Data.Show (class Show)
 import Data.Unit (unit)
 import Data.Variant (SProxy(..), Variant, case_, inj, on, onMatch)
 import Database.PostgreSQL (PGError)
@@ -36,7 +40,7 @@ import Foreign (ForeignError(..))
 import HTTPure.Response (Response, ResponseM) as HTTPure
 import HTTPure.Response (badRequest, conflict, forbidden, internalServerError, notFound)
 import Web.ShoppingCart.Domain.Payment (Payment)
-import Web.ShoppingCart.ErrorTags (_databaseError, _jsonDecodeError, _orderNotFound, _unknownError, _orderCreateFailedError, _paymentFailedError, _loginError, _jwtTokenMissingError, _userNameInUseError)
+import Web.ShoppingCart.ErrorTags (_databaseError, _jsonDecodeError, _orderNotFound, _unknownError, _orderCreateFailedError, _paymentFailedError, _loginError, _jwtTokenMissingError, _userNameInUseError, _stringRefineError)
 import Web.ShoppingCart.Services.ShoppingCart (ShoppingCart)
 
 
@@ -89,6 +93,11 @@ type UserNameInUseError r = (userNameInUseError :: String | r)
 userNameInUseError :: forall r. String -> Variant (UserNameInUseError + r)
 userNameInUseError = inj _userNameInUseError
 
+type StringRefineError r = (stringRefineError :: { value :: String, evalTree :: EvalTree } | r)
+
+stringRefineError :: forall r. { value :: String, evalTree :: EvalTree } -> Variant (StringRefineError + r)
+stringRefineError = inj _stringRefineError
+
 type RequestError r =
     ( JsonDecodeError
     + OrderNotFoundError
@@ -99,6 +108,7 @@ type RequestError r =
     + LoginError
     + JwtTokenMissingError
     + UserNameInUseError
+    + StringRefineError
     + r
     )
 
@@ -109,7 +119,10 @@ handleRequestError
 handleRequestError = either handle pure
 
 
-handle :: forall r. Variant (RequestError + r) -> HTTPure.ResponseM
+handle
+    :: forall r
+    .  Variant (RequestError + r)
+    -> HTTPure.ResponseM
 handle =
     onMatch
       { databaseError: \s -> internalServerError ("[PGERROR]: " <> show s)
@@ -121,5 +134,6 @@ handle =
       , loginError: \_ -> forbidden
       , jwtTokenMissingError: \_ -> badRequest ("[ERROR]: Jwt token missing in request")
       , userNameInUseError: \s -> conflict ("[ERROR]: User name in use " <> show s)
+      , stringRefineError: \s -> badRequest ("[REFINE-ERROR] value" <> show s.value <> "should be: " <> show s.evalTree)
       }
     (\_ -> internalServerError "[ERROR]: Unknown")

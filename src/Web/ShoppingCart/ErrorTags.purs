@@ -8,6 +8,7 @@ module Web.ShoppingCart.ErrorTags
     , _loginError
     , _jwtTokenMissingError
     , _userNameInUseError
+    , _stringRefineError
     ) where
 
 import Data.Variant (SProxy(..))
@@ -22,3 +23,4 @@ _paymentFailedError = SProxy :: SProxy "paymentFailedError"
 _loginError = SProxy :: SProxy "loginError"
 _jwtTokenMissingError = SProxy :: SProxy "jwtTokenMissingError"
 _userNameInUseError = SProxy :: SProxy "userNameInUseError"
+_stringRefineError = SProxy :: SProxy "stringRefineError"

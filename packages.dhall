@@ -189,6 +189,21 @@ let additions =
     , version = 
         "686e9d02c3916a85c6ce1c499be5528a7102b533"
     }
+  , refinery =
+    { dependencies = 
+        [ "console"
+        , "effect"
+        , "either"
+        , "generics-rep"
+        , "psci-support"
+        , "strings"
+        , "these"
+        , "typelevel" ]
+    , repo = 
+        "https://github.com/thought2/purescript-refinery.git"
+    , version =
+        "548d3b66b6c3b4ab06422c9dbf0544cfc0860ff2"
+    }
   }
 
 in  upstream // overrides // additions

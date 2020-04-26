@@ -59,7 +59,7 @@ handleLogout authClient headers req = runExceptT $ do
     ExceptT $ sequence $ Right (authClient.logout token)
 
     where
-        mapHeaders :: forall r1. Headers -> Either (Variant (JwtTokenMissingError + r1)) JwtToken
+        mapHeaders :: Headers -> Either (Variant (JwtTokenMissingError + r)) JwtToken
         mapHeaders headers = case headers !! "Authorization" of
             Nothing -> Left jwtTokenMissingError
             Just v -> Right (wrap v)

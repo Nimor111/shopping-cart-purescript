@@ -56,7 +56,7 @@ createBrand brands body = runExceptT $ do
     ExceptT $ sequence $ Right (brands.create $ {brandId: (wrap $ show uuid), brandName: brandName})
 
     where
-        mapJsonError :: forall r1. String -> Either (Variant (JsonDecodeError + r1)) BrandName
+        mapJsonError :: String -> Either (Variant (JsonDecodeError + r)) BrandName
         mapJsonError body = case JSON.readJSON body of
             Left errors -> Left $ jsonDecodeError errors
             Right v -> Right v

@@ -31,4 +31,3 @@ type App r = ReaderT Context (ExceptT (AppError r) Aff)
 
 runApp :: ∀ a r. Context -> App r a -> Aff (Either (AppError r) a)
 runApp ctx m = runExceptT $ runReaderT m ctx
-

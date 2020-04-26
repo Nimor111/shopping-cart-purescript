@@ -16,7 +16,8 @@ You can edit this file as you like.
     "aff-retry",
     "simple-json",
     "simple-jwt",
-    "checked-exceptions"
+    "checked-exceptions",
+    "refinery"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]

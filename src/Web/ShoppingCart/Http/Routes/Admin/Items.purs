@@ -55,7 +55,7 @@ createItem items body = runExceptT $ do
     ExceptT $ sequence $ Right $ items.create newItem
 
     where
-        mapJsonError :: forall r1. String -> Either (Variant (JsonDecodeError + r1)) CreateItem
+        mapJsonError :: String -> Either (Variant (JsonDecodeError + r)) CreateItem
         mapJsonError b = case JSON.readJSON b of
             Left errors -> Left $ jsonDecodeError errors
             Right v -> Right v
@@ -73,7 +73,7 @@ updateItem items body = runExceptT $ do
     ExceptT $ sequence $ Right $ items.update updatedItem
 
     where
-        mapJsonError :: forall r1. String -> Either (Variant (JsonDecodeError + r1)) UpdateItem
+        mapJsonError :: String -> Either (Variant (JsonDecodeError + r)) UpdateItem
         mapJsonError b = case JSON.readJSON b of
             Left errors -> Left $ jsonDecodeError errors
             Right v -> Right v

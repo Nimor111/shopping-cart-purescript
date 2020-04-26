@@ -1097,6 +1097,18 @@ let
         installPhase = "ln -s $src $out";
       };
 
+    "refinery" = pkgs.stdenv.mkDerivation {
+        name = "refinery";
+        version = "548d3b66b6c3b4ab06422c9dbf0544cfc0860ff2";
+        src = pkgs.fetchgit {
+          url = "https://github.com/thought2/purescript-refinery.git";
+          rev = "548d3b66b6c3b4ab06422c9dbf0544cfc0860ff2";
+          sha256 = "1znwsylj17jpgc1dc2lgl5mpdirq1hay7rnaxrxqlhp3xrggsvq0";
+        };
+        phases = "installPhase";
+        installPhase = "ln -s $src $out";
+      };
+
     "refs" = pkgs.stdenv.mkDerivation {
         name = "refs";
         version = "v4.1.0";
@@ -1205,6 +1217,18 @@ let
         installPhase = "ln -s $src $out";
       };
 
+    "these" = pkgs.stdenv.mkDerivation {
+        name = "these";
+        version = "v4.0.0";
+        src = pkgs.fetchgit {
+          url = "https://github.com/purescript-contrib/purescript-these.git";
+          rev = "fc19af52b34f8f128f9981aa27aab4becd7a79d5";
+          sha256 = "0ywwpbcz1d0pdi3f9h9kla52vq1if8zwdz7jq7lqz5s8zj8kyg5r";
+        };
+        phases = "installPhase";
+        installPhase = "ln -s $src $out";
+      };
+
     "transformers" = pkgs.stdenv.mkDerivation {
         name = "transformers";
         version = "v4.2.0";
@@ -1236,6 +1260,18 @@ let
           url = "https://github.com/purescript/purescript-type-equality.git";
           rev = "2cdae51c394401cd5fc04b03c341273b41532b7d";
           sha256 = "1b7szyca5s96gaawvgwrw7fa8r7gqsdff7xhz3vvngnylv2scl3w";
+        };
+        phases = "installPhase";
+        installPhase = "ln -s $src $out";
+      };
+
+    "typelevel" = pkgs.stdenv.mkDerivation {
+        name = "typelevel";
+        version = "v6.0.0";
+        src = pkgs.fetchgit {
+          url = "https://github.com/bodil/purescript-typelevel.git";
+          rev = "c7917aa6d43440608e6e04332e4c916a45976313";
+          sha256 = "0gxj926ppx6d8inir589x0a30iv29hqc2y6vsa1n1c2vlcqv2zgd";
         };
         phases = "installPhase";
         installPhase = "ln -s $src $out";
