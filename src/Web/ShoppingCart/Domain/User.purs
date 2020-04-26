@@ -2,6 +2,7 @@ module Web.ShoppingCart.Domain.User
       ( User (..)
       , UserId (..)
       , UserName (..)
+      , LoginUser (..)
       , Password (..)
       , JwtToken (..)
       ) where
@@ -38,4 +39,9 @@ derive newtype instance writeForeignJwtToken :: JSON.WriteForeign JwtToken
 type User =
   { userId :: UserId
   , userName :: UserName
+  }
+
+type LoginUser =
+  { userName :: UserName
+  , password :: Password
   }

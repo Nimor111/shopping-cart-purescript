@@ -4,6 +4,7 @@ module Web.ShoppingCart.Error
     , RowApply (..), type (+)
     , OrderNotFoundError (..)
     , OrderCreateFailedError (..)
+    , LoginError (..)
     , PaymentFailedError (..)
     , DatabaseError (..)
     , JsonDecodeError (..)
@@ -14,6 +15,7 @@ module Web.ShoppingCart.Error
     , unknownError
     , orderCreateFailedError
     , paymentFailedError
+    , loginError
     )
     where
 
@@ -28,9 +30,9 @@ import Database.PostgreSQL (PGError)
 import Effect.Exception (Error, message)
 import Foreign (ForeignError(..))
 import HTTPure.Response (Response, ResponseM) as HTTPure
-import HTTPure.Response (badRequest, internalServerError, notFound)
+import HTTPure.Response (badRequest, forbidden, internalServerError, notFound)
 import Web.ShoppingCart.Domain.Payment (Payment)
-import Web.ShoppingCart.ErrorTags (_databaseError, _jsonDecodeError, _orderNotFound, _unknownError, _orderCreateFailedError, _paymentFailedError)
+import Web.ShoppingCart.ErrorTags (_databaseError, _jsonDecodeError, _orderNotFound, _unknownError, _orderCreateFailedError, _paymentFailedError, _loginError)
 import Web.ShoppingCart.Services.ShoppingCart (ShoppingCart)
 
 
@@ -68,6 +70,12 @@ type PaymentFailedError r = (paymentFailedError :: Payment | r)
 paymentFailedError :: forall r. Payment -> Variant (PaymentFailedError + r)
 paymentFailedError = inj _paymentFailedError
 
+
+type LoginError r = (loginError :: Unit | r)
+
+loginError :: forall r. Variant (LoginError + r)
+loginError = inj _loginError unit
+
 type RequestError r =
     ( JsonDecodeError
     + OrderNotFoundError
@@ -75,6 +83,7 @@ type RequestError r =
     + UnknownError
     + OrderCreateFailedError
     + PaymentFailedError
+    + LoginError
     + r
     )
 
@@ -94,5 +103,6 @@ handle =
       , jsonDecodeError: \s -> badRequest ("[ERROR]: Bad request " <> show s)
       , orderCreateFailedError: \s -> badRequest ("[ERROR]: Failed to create order! ")
       , paymentFailedError: \s -> badRequest ("[ERROR]: Failed to process payment " <> show s)
+      , loginError: \_ -> forbidden
       }
     (\_ -> internalServerError "[ERROR]: Unknown")
