@@ -10,6 +10,7 @@ module Web.ShoppingCart.Error
     , DatabaseError (..)
     , JsonDecodeError (..)
     , UnknownError (..)
+    , UserNameInUseError (..)
     , databaseError
     , orderNotFoundError
     , jsonDecodeError
@@ -18,6 +19,7 @@ module Web.ShoppingCart.Error
     , paymentFailedError
     , loginError
     , jwtTokenMissingError
+    , userNameInUseError
     )
     where
 
@@ -32,9 +34,9 @@ import Database.PostgreSQL (PGError)
 import Effect.Exception (Error, message)
 import Foreign (ForeignError(..))
 import HTTPure.Response (Response, ResponseM) as HTTPure
-import HTTPure.Response (badRequest, forbidden, internalServerError, notFound)
+import HTTPure.Response (badRequest, conflict, forbidden, internalServerError, notFound)
 import Web.ShoppingCart.Domain.Payment (Payment)
-import Web.ShoppingCart.ErrorTags (_databaseError, _jsonDecodeError, _orderNotFound, _unknownError, _orderCreateFailedError, _paymentFailedError, _loginError, _jwtTokenMissingError)
+import Web.ShoppingCart.ErrorTags (_databaseError, _jsonDecodeError, _orderNotFound, _unknownError, _orderCreateFailedError, _paymentFailedError, _loginError, _jwtTokenMissingError, _userNameInUseError)
 import Web.ShoppingCart.Services.ShoppingCart (ShoppingCart)
 
 
@@ -72,7 +74,6 @@ type PaymentFailedError r = (paymentFailedError :: Payment | r)
 paymentFailedError :: forall r. Payment -> Variant (PaymentFailedError + r)
 paymentFailedError = inj _paymentFailedError
 
-
 type LoginError r = (loginError :: Unit | r)
 
 loginError :: forall r. Variant (LoginError + r)
@@ -83,6 +84,11 @@ type JwtTokenMissingError r = (jwtTokenMissingError :: Unit | r)
 jwtTokenMissingError :: forall r. Variant (JwtTokenMissingError + r)
 jwtTokenMissingError = inj _jwtTokenMissingError unit
 
+type UserNameInUseError r = (userNameInUseError :: String | r)
+
+userNameInUseError :: forall r. String -> Variant (UserNameInUseError + r)
+userNameInUseError = inj _userNameInUseError
+
 type RequestError r =
     ( JsonDecodeError
     + OrderNotFoundError
@@ -92,6 +98,7 @@ type RequestError r =
     + PaymentFailedError
     + LoginError
     + JwtTokenMissingError
+    + UserNameInUseError
     + r
     )
 
@@ -113,5 +120,6 @@ handle =
       , paymentFailedError: \s -> badRequest ("[ERROR]: Failed to process payment " <> show s)
       , loginError: \_ -> forbidden
       , jwtTokenMissingError: \_ -> badRequest ("[ERROR]: Jwt token missing in request")
+      , userNameInUseError: \s -> conflict ("[ERROR]: User name in use " <> show s)
       }
     (\_ -> internalServerError "[ERROR]: Unknown")

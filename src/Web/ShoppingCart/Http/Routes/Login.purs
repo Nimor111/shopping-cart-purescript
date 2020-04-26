@@ -20,7 +20,6 @@ import Web.ShoppingCart.App (AppError)
 import Web.ShoppingCart.Context (Context)
 import Web.ShoppingCart.Domain.User (JwtToken(..), LoginUser(..))
 import Web.ShoppingCart.Error (type (+), JsonDecodeError, LoginError, jsonDecodeError, loginError)
-import Web.ShoppingCart.Http.Routes.Checkout (HandleCheckoutError)
 import Web.ShoppingCart.Http.Routes.Headers (responseHeaders)
 import Web.ShoppingCart.Services.Auth (Auth)
 
