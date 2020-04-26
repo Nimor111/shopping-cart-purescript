@@ -6,12 +6,26 @@ module Web.ShoppingCart.Domain.Card
         , CVV (..)
         ) where
 
+import Data.Newtype (class Newtype)
+import Data.Show (class Show)
 import Simple.JSON as JSON
 
-newtype CardName = CardName { unCardName :: String }
-newtype CardNumber = CardNumber { unCardNumber :: String }
-newtype CardExpiration = CardExpiration { unCardExpiration :: String }
-newtype CVV = CVV { unCvv :: String }
+newtype CardName = CardName String
+newtype CardNumber = CardNumber String
+newtype CardExpiration = CardExpiration String
+newtype CVV = CVV String
+
+
+derive newtype instance showCardNumber :: Show CardNumber
+derive newtype instance showCardExpiration :: Show CardExpiration
+derive newtype instance showCardName :: Show CardName
+derive newtype instance showCVV :: Show CVV
+
+derive instance newtypeCardName   :: Newtype CardName   _
+derive instance newtypeCardNumber :: Newtype CardNumber _
+derive instance newtypeCardExpiration :: Newtype CardExpiration _
+derive instance newtypeCVV :: Newtype CVV _
+
 
 derive newtype instance readForeignCardName :: JSON.ReadForeign CardName
 derive newtype instance writeForeignCardName :: JSON.WriteForeign CardName

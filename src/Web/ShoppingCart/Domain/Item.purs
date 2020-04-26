@@ -9,6 +9,7 @@ module Web.ShoppingCart.Domain.Item
         ) where
 
 import Data.Newtype (class Newtype)
+import Data.Show (class Show)
 import Simple.JSON as JSON
 import Web.ShoppingCart.Domain.Brand (Brand, BrandId)
 import Web.ShoppingCart.Domain.Category (Category, CategoryId)
@@ -18,6 +19,8 @@ newtype ItemId = ItemId String
 newtype ItemName = ItemName String
 newtype ItemDescription = ItemDescription String
 newtype Money = Money Number
+
+derive newtype instance showMoney :: Show Money
 
 derive instance newtypeItemId   :: Newtype ItemId   _
 derive instance newtypeItemName :: Newtype ItemName _

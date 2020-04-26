@@ -7,6 +7,7 @@ module Web.ShoppingCart.Domain.User
       ) where
 
 import Data.Newtype (class Newtype)
+import Data.Show (class Show)
 import Simple.JSON as JSON
 
 
@@ -14,6 +15,8 @@ newtype UserId = UserId String
 newtype UserName = UserName String
 newtype Password = Password String
 newtype JwtToken = JwtToken String
+
+derive newtype instance showUserId :: Show UserId
 
 derive instance newtypeUserId   :: Newtype UserId   _
 derive instance newtypeUserName :: Newtype UserName _

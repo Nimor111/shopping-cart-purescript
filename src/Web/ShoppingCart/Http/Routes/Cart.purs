@@ -80,6 +80,7 @@ addItemsToCart
     -> m (Either (NonEmptyList ForeignError) Unit)
 addItemsToCart userId body cart req = runExceptT $ do
     (newCart :: Cart) <- ExceptT $ pure $ JSON.readJSON body
+
     ExceptT $ sequence $ Right (addItems newCart)
     where
         addItems :: Cart -> m Unit
@@ -96,6 +97,7 @@ updateCart
     -> m (Either (NonEmptyList ForeignError) Unit)
 updateCart userId body cart req = runExceptT $ do
     (existingCart :: Cart) <- ExceptT $ pure $ JSON.readJSON body
+
     ExceptT $ sequence $ Right (cart.update userId existingCart)
 
 removeItemFromCart

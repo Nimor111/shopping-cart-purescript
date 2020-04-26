@@ -14,7 +14,7 @@ import HTTPure.Request (Request) as HTTPure
 import HTTPure.Response (Response, ResponseM) as HTTPure
 import Web.ShoppingCart.App (App, AppError, runApp)
 import Web.ShoppingCart.Context (Context)
-import Web.ShoppingCart.Error (handleGenericError)
+import Web.ShoppingCart.Error (handleRequestError)
 import Web.ShoppingCart.Http.Middlewares.Auth (authMiddleware)
 import Web.ShoppingCart.Router (Route, router, route, errorOut, insertPeople, sayHello)
 import Web.ShoppingCart.Services.Brands (Brands)
@@ -27,7 +27,7 @@ appMiddleware
    -> HTTPure.Request
    -> HTTPure.ResponseM
 appMiddleware ctx handler request =
-    runApp ctx (handler request) >>= handleGenericError
+    runApp ctx (handler request) >>= handleRequestError
 
 appRoutes
     :: forall r m
