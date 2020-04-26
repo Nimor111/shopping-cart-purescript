@@ -27,7 +27,7 @@ import Web.ShoppingCart.Error (RequestError, type (+))
 
 type AppError r = Variant (RequestError + r)
 
-type App r = ReaderT Context (ExceptT (AppError r) Aff)
+type App m r = ReaderT Context (ExceptT (AppError r) m)
 
-runApp :: ∀ a r. Context -> App r a -> Aff (Either (AppError r) a)
+runApp :: ∀ m a r. Context -> App m r a -> m (Either (AppError r) a)
 runApp ctx m = runExceptT $ runReaderT m ctx

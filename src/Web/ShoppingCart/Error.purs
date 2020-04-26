@@ -35,6 +35,7 @@ import Data.Show (class Show)
 import Data.Unit (unit)
 import Data.Variant (SProxy(..), Variant, case_, inj, on, onMatch)
 import Database.PostgreSQL (PGError)
+import Effect.Aff.Class (class MonadAff)
 import Effect.Exception (Error, message)
 import Foreign (ForeignError(..))
 import HTTPure.Response (Response, ResponseM) as HTTPure
@@ -113,16 +114,18 @@ type RequestError r =
     )
 
 handleRequestError
-    :: forall r
-    .  Either (Variant (RequestError + r)) HTTPure.Response
-    -> HTTPure.ResponseM
+    :: forall m r
+    .  MonadAff m
+    => Either (Variant (RequestError + r)) HTTPure.Response
+    -> m HTTPure.Response
 handleRequestError = either handle pure
 
 
 handle
-    :: forall r
-    .  Variant (RequestError + r)
-    -> HTTPure.ResponseM
+    :: forall m r
+    .  MonadAff m
+    => Variant (RequestError + r)
+    -> m HTTPure.Response
 handle =
     onMatch
       { databaseError: \s -> internalServerError ("[PGERROR]: " <> show s)

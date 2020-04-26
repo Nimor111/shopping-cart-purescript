@@ -21,11 +21,12 @@ import Web.ShoppingCart.Services.Brands (Brands)
 
 
 appMiddleware
-   :: forall r
-   .  Context
-   -> (HTTPure.Request -> App r HTTPure.Response)
+   :: forall m r
+   .  MonadAff m
+   => Context
+   -> (HTTPure.Request -> App m r HTTPure.Response)
    -> HTTPure.Request
-   -> HTTPure.ResponseM
+   -> m HTTPure.Response
 appMiddleware ctx handler request =
     runApp ctx (handler request) >>= handleRequestError
 
