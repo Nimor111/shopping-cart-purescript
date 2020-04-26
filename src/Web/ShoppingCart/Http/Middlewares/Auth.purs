@@ -14,7 +14,7 @@ import Data.Show (show)
 import Effect (Effect)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (class MonadAff)
-import Effect.Class (liftEffect)
+import Effect.Class (class MonadEffect, liftEffect)
 import HTTPure.Headers (Headers(..))
 import HTTPure.Lookup ((!!))
 import HTTPure.Request (Request) as HTTPure
@@ -55,10 +55,12 @@ lookupHeaderEither headers =
       Nothing -> Left InvalidTokenError
 
 getAndVerifyAuth
-    :: Secret
+    :: forall m
+    .  MonadEffect m
+    => Secret
     -> HTTPure.Request
-    -> Effect (Either JwtError String)
+    -> m (Either JwtError String)
 getAndVerifyAuth secret { headers } = runExceptT $ do
     token <- ExceptT $ pure $ lookupHeaderEither headers
 
-    ExceptT $ decode secret (fromString token)
+    ExceptT $ liftEffect $ decode secret (fromString token)

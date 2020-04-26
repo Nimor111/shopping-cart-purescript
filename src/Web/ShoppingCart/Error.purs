@@ -5,6 +5,7 @@ module Web.ShoppingCart.Error
     , OrderNotFoundError (..)
     , OrderCreateFailedError (..)
     , LoginError (..)
+    , JwtTokenMissingError (..)
     , PaymentFailedError (..)
     , DatabaseError (..)
     , JsonDecodeError (..)
@@ -16,6 +17,7 @@ module Web.ShoppingCart.Error
     , orderCreateFailedError
     , paymentFailedError
     , loginError
+    , jwtTokenMissingError
     )
     where
 
@@ -32,7 +34,7 @@ import Foreign (ForeignError(..))
 import HTTPure.Response (Response, ResponseM) as HTTPure
 import HTTPure.Response (badRequest, forbidden, internalServerError, notFound)
 import Web.ShoppingCart.Domain.Payment (Payment)
-import Web.ShoppingCart.ErrorTags (_databaseError, _jsonDecodeError, _orderNotFound, _unknownError, _orderCreateFailedError, _paymentFailedError, _loginError)
+import Web.ShoppingCart.ErrorTags (_databaseError, _jsonDecodeError, _orderNotFound, _unknownError, _orderCreateFailedError, _paymentFailedError, _loginError, _jwtTokenMissingError)
 import Web.ShoppingCart.Services.ShoppingCart (ShoppingCart)
 
 
@@ -76,6 +78,11 @@ type LoginError r = (loginError :: Unit | r)
 loginError :: forall r. Variant (LoginError + r)
 loginError = inj _loginError unit
 
+type JwtTokenMissingError r = (jwtTokenMissingError :: Unit | r)
+
+jwtTokenMissingError :: forall r. Variant (JwtTokenMissingError + r)
+jwtTokenMissingError = inj _jwtTokenMissingError unit
+
 type RequestError r =
     ( JsonDecodeError
     + OrderNotFoundError
@@ -84,6 +91,7 @@ type RequestError r =
     + OrderCreateFailedError
     + PaymentFailedError
     + LoginError
+    + JwtTokenMissingError
     + r
     )
 
@@ -104,5 +112,6 @@ handle =
       , orderCreateFailedError: \s -> badRequest ("[ERROR]: Failed to create order! ")
       , paymentFailedError: \s -> badRequest ("[ERROR]: Failed to process payment " <> show s)
       , loginError: \_ -> forbidden
+      , jwtTokenMissingError: \_ -> badRequest ("[ERROR]: Jwt token missing in request")
       }
     (\_ -> internalServerError "[ERROR]: Unknown")

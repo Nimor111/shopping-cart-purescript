@@ -13,5 +13,6 @@ type Auth m =
   { findUser :: JwtToken -> m (Maybe User)
   , newUser :: UserName -> Password -> m JwtToken
   , login :: UserName -> Password -> m JwtToken
-  , logout :: JwtToken -> UserName -> m Unit
+  {--, logout :: JwtToken -> UserName -> m Unit--}
+  , logout :: JwtToken -> m Unit
   }
