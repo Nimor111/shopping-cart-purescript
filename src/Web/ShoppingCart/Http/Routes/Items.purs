@@ -6,8 +6,7 @@ import Control.Monad.Error.Class (class MonadThrow, throwError)
 import Control.Monad.Except.Trans (ExceptT(..), runExceptT)
 import Control.Monad.Reader.Class (class MonadAsk)
 import Data.Either (Either(..))
-import Data.Newtype (wrap)
-import Data.Refinery.Core (EvalTree, refine)
+import Data.Refinery.Core (refine)
 import Data.Traversable (sequence)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
@@ -18,7 +17,7 @@ import HTTPure.Response (Response, notFound, ok') as HTTPure
 import Simple.JSON as JSON
 import Web.ShoppingCart.App (AppError)
 import Web.ShoppingCart.Context (Context)
-import Web.ShoppingCart.Domain.Brand (BrandName(..), BrandNamePred(..))
+import Web.ShoppingCart.Domain.Brand (BrandNamePred(..), toDomain)
 import Web.ShoppingCart.Domain.Item (Item)
 import Web.ShoppingCart.Error (stringRefineError)
 import Web.ShoppingCart.Http.Routes.Headers (responseHeaders)
@@ -38,7 +37,7 @@ itemsRouter items req@{ path: [""] } = do
 
     case res of
         Left err -> throwError err
-        Right items -> HTTPure.ok' responseHeaders (JSON.writeJSON items)
+        Right is -> HTTPure.ok' responseHeaders (JSON.writeJSON is)
 itemsRouter _ _ = HTTPure.notFound
 
 getItemsByBrandName
@@ -50,12 +49,12 @@ getItemsByBrandName
     -> HTTPure.Request
     -> m (Either (AppError r) (Array Item))
 getItemsByBrandName i req = runExceptT $ do
-    -- liftEffect $ log "Fetching all items by brand name..."
-    refinedBrandName <- ExceptT $ pure $ mapRefinedToError (req.query !@ "brand")
-    ExceptT $ sequence $ Right $ i.findBy (wrap refinedBrandName)
+    liftEffect $ log "Fetching all items by brand name..."
+    refinedBrandName <- ExceptT $ pure $ mapRefinedToEither (req.query !@ "brand")
+    ExceptT $ sequence $ Right $ i.findBy (toDomain refinedBrandName)
 
     where
-        mapRefinedToError :: String -> Either (AppError r) BrandNamePred
-        mapRefinedToError brandName = case refine brandName of
+        mapRefinedToEither :: String -> Either (AppError r) BrandNamePred
+        mapRefinedToEither brandName = case refine brandName of
             Left err -> Left $ stringRefineError err
             Right v -> Right $ BrandNamePred v

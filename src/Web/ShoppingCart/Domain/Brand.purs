@@ -3,6 +3,7 @@ module Web.ShoppingCart.Domain.Brand
         , BrandId (..)
         , BrandName (..)
         , BrandNamePred (..)
+        , toDomain
         ) where
 
 import Prelude
@@ -11,10 +12,10 @@ import Control.Monad.Except (runExcept)
 import Control.Monad.Except.Trans (except)
 import Data.Either (Either(..))
 import Data.List (singleton)
-import Data.List.Types (List(..))
 import Data.List.NonEmpty (cons)
+import Data.List.Types (List(..))
 import Data.List.Types (NonEmptyList(..))
-import Data.Newtype (class Newtype)
+import Data.Newtype (class Newtype, wrap)
 import Data.NonEmpty (NonEmpty(..), (:|))
 import Data.Refinery.Core (Refined, refine, unrefine)
 import Foreign (ForeignError(..), readString)
@@ -26,7 +27,7 @@ import Web.ShoppingCart.Domain.Refined (NonEmptyString)
 newtype BrandNamePred = BrandNamePred (Refined NonEmptyString String)
 
 newtype BrandId = BrandId String
-newtype BrandName = BrandName BrandNamePred
+newtype BrandName = BrandName String
 
 instance writeForeignBrandNamePred :: WriteForeign BrandNamePred where
     writeImpl (BrandNamePred ref) = writeImpl (unrefine ref)
@@ -37,6 +38,9 @@ instance readForeignBrandNamePred :: ReadForeign BrandNamePred where
         Right v1 -> case refine v1 of
             Left err -> except $ Left $ NonEmptyList $ (ForeignError $ show err.evalTree) :| singleton (ForeignError err.value)
             Right v2 -> except $ Right (BrandNamePred v2)
+
+toDomain :: BrandNamePred -> BrandName
+toDomain (BrandNamePred ref) = wrap $ unrefine ref
 
 derive instance newtypeBrandId :: Newtype BrandId _
 derive instance newtypeBrandName :: Newtype BrandName _

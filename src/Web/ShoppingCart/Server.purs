@@ -17,7 +17,14 @@ import Web.ShoppingCart.Context (Context)
 import Web.ShoppingCart.Error (handleRequestError)
 import Web.ShoppingCart.Http.Middlewares.Auth (authMiddleware)
 import Web.ShoppingCart.Router (Route, router, route, errorOut, insertPeople, sayHello)
+import Web.ShoppingCart.Services.Auth (Auth)
 import Web.ShoppingCart.Services.Brands (Brands)
+import Web.ShoppingCart.Services.Categories (Categories)
+import Web.ShoppingCart.Services.Items (Items)
+import Web.ShoppingCart.Services.Orders (Orders)
+import Web.ShoppingCart.Services.Payments (Payments)
+import Web.ShoppingCart.Services.ShoppingCart (ShoppingCart)
+import Web.ShoppingCart.Services.Users (Users)
 
 
 appMiddleware
@@ -56,6 +63,13 @@ authRoutes =
 
 type Services m =
     { brands :: Brands m
+    , items :: Items m
+    , auth :: Auth m
+    , categories :: Categories m
+    , orders :: Orders m
+    , payments :: Payments m
+    , users :: Users m
+    , shoppingCart :: ShoppingCart m
     }
 
 -- TODO this will be the real server
