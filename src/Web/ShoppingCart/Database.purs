@@ -2,7 +2,6 @@ module Web.ShoppingCart.Database
         ( hoistSelda
         , people
         , createPeople
-        , dbConfig
         )
         where
 
@@ -20,23 +19,16 @@ import Effect.Aff.Class (class MonadAff)
 import Selda.Query.Class (hoistSeldaWith)
 import Selda.Table (Table(..))
 import Web.ShoppingCart.App (AppError)
-import Web.ShoppingCart.Error (databaseError)
+import Web.ShoppingCart.Error (DatabaseError, databaseError, type (+))
 
 
 hoistSelda
   :: ∀ e r1 r2 m
   .  MonadAsk { conn ∷ PostgreSQL.Connection | r1 } m
-  {--=> MonadThrow (Variant ( pgError ∷ PGError | e )) m--}
-  => MonadThrow (AppError r2) m
+  => MonadThrow (Variant (DatabaseError + r2)) m
   => MonadAff m
   => ExceptT PGError (ReaderT PostgreSQL.Connection Aff) ~> m
-hoistSelda = hoistSeldaWith (\err -> databaseError err) (_.conn)
-
-dbConfig :: PostgreSQL.PoolConfiguration
-dbConfig = (PostgreSQL.defaultPoolConfiguration "shoppingcart")
-  { user = Just "postgres"
-  , password = Just ""
-  }
+hoistSelda = hoistSeldaWith databaseError (_.conn)
 
 execute :: String -> PostgreSQL.Connection -> Aff Unit
 execute sql conn = do
