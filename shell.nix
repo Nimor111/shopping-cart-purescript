@@ -19,6 +19,8 @@ let
   ) {
     inherit pkgs;
   };
+
+  node_packages = import ./node-nix-deps/default-node.nix { inherit (pkgs) nodejs; };
 in
 stdenv.mkDerivation {
   name = "purescript-bootstrap-shell";
@@ -31,5 +33,7 @@ stdenv.mkDerivation {
     easy-ps.purs
     easy-ps.spago
     easy-ps.spago2nix
+    nodePackages.node2nix
+    node_packages.purty
   ];
 }

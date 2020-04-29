@@ -7,7 +7,7 @@ import Data.String.Common (null)
 data NonEmptyString
 
 instance validateNonEmptyString :: Validate NonEmptyString String where
-    validate _ val =
-        { result: not (null val)
-        , evalTree: Satisfy "nonEmpty"
-        }
+  validate _ val =
+    { result: not (null val)
+    , evalTree: Satisfy "nonEmpty"
+    }

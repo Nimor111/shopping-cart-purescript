@@ -1,10 +1,8 @@
 module Web.ShoppingCart.Server
-        ( server
-        )
-        where
+  ( server
+  ) where
 
 import Prelude
-
 import Control.Monad.Error.Class (class MonadError, class MonadThrow)
 import Control.Monad.Reader.Class (class MonadAsk)
 import Effect.Aff.Class (class MonadAff)
@@ -26,43 +24,41 @@ import Web.ShoppingCart.Services.Payments (Payments)
 import Web.ShoppingCart.Services.ShoppingCart (ShoppingCart)
 import Web.ShoppingCart.Services.Users (Users)
 
+appMiddleware ::
+  forall r.
+  Context ->
+  (HTTPure.Request -> App r HTTPure.Response) ->
+  HTTPure.Request ->
+  HTTPure.ResponseM
+appMiddleware ctx handler request = runApp ctx (handler request) >>= handleRequestError
 
-appMiddleware
-   :: forall r
-   .  Context
-   -> (HTTPure.Request -> App r HTTPure.Response)
-   -> HTTPure.Request
-   -> HTTPure.ResponseM
-appMiddleware ctx handler request =
-    runApp ctx (handler request) >>= handleRequestError
-
-appRoutes
-    :: forall r m
-    .  MonadAff m
-    => MonadAsk Context m
-    => MonadError (AppError r) m
-    {--=> Brands m--}
-    => Array (Route m)
+appRoutes ::
+  forall r m.
+  MonadAff m =>
+  MonadAsk Context m =>
+  MonadError (AppError r) m {--=> Brands m--}
+  =>
+  Array (Route m)
 appRoutes =
-    [ route ["hello"] sayHello
-    , route ["error"] errorOut
-    , route ["insert"] insertPeople
-    {--, route ["brands"] (brandsRouter b)--}
-    ]
+  [ route [ "hello" ] sayHello
+  , route [ "error" ] errorOut
+  , route [ "insert" ] insertPeople
+  {--, route ["brands"] (brandsRouter b)--}
+  ]
 
-authRoutes
-    :: forall r m
-    .  MonadAff m
-    => MonadAsk Context m
-    => MonadThrow (AppError r) m
-    {--=> Brands m--}
-    => Array (Route m)
+authRoutes ::
+  forall r m.
+  MonadAff m =>
+  MonadAsk Context m =>
+  MonadThrow (AppError r) m {--=> Brands m--}
+  =>
+  Array (Route m)
 authRoutes =
-    [ route ["insert"] insertPeople
-    ]
+  [ route [ "insert" ] insertPeople
+  ]
 
-type Services m =
-    { brands :: Brands m
+type Services m
+  = { brands :: Brands m
     , items :: Items m
     , auth :: Auth m
     , categories :: Categories m
@@ -75,8 +71,7 @@ type Services m =
 -- TODO this will be the real server
 {--server :: Context -> Services Aff -> HTTPure.ServerM--}
 {--server services ctx = HTTPure.serve 8080 (appMiddleware ctx (router (appRoutes services))) $ Console.log "Server up on port 8080"--}
-
 server :: Context -> HTTPure.ServerM
 server ctx = HTTPure.serve 8080 middlewares $ Console.log "Server up on port 8080"
-    where
-        middlewares = appMiddleware ctx (router appRoutes)
+  where
+  middlewares = appMiddleware ctx (router appRoutes)

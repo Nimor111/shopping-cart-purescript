@@ -1,7 +1,6 @@
 module Web.ShoppingCart.Retry where
 
 import Prelude
-
 import Control.Monad.Error.Class (class MonadError)
 import Data.Int (toNumber)
 import Data.Maybe (Maybe(..))
@@ -14,28 +13,28 @@ import Effect.Aff.Retry (RetryPolicyM(..), RetryStatus(..), limitRetries, retryP
 import Effect.Exception (Error)
 import Math (pow)
 
-
-retryPolicy
-    :: forall m
-    .  MonadAff m
-    => Retry.RetryPolicyM m
+retryPolicy ::
+  forall m.
+  MonadAff m =>
+  Retry.RetryPolicyM m
 retryPolicy = exponentialBackoff (Milliseconds 2000.0) <> Retry.limitRetries 3
 
-checks
-    :: forall m e
-    .  MonadAff m
-    => MonadError e m
-    => Array (Retry.RetryStatus -> e -> m Boolean)
-checks = [\(Retry.RetryStatus { iterNumber: n }) error -> pure true]
+checks ::
+  forall m e.
+  MonadAff m =>
+  MonadError e m =>
+  Array (Retry.RetryStatus -> e -> m Boolean)
+checks = [ \(Retry.RetryStatus { iterNumber: n }) error -> pure true ]
 
-exponentialBackoff
-    :: forall d
-    .  Duration d
-    => d
-    -> Retry.RetryPolicy
-exponentialBackoff base = Retry.retryPolicy \(Retry.RetryStatus { iterNumber: n }) ->
+exponentialBackoff ::
+  forall d.
+  Duration d =>
+  d ->
+  Retry.RetryPolicy
+exponentialBackoff base =
+  Retry.retryPolicy \(Retry.RetryStatus { iterNumber: n }) ->
     Just $ Milliseconds $ unwrap (fromDuration base) * pow 2.0 (toNumber n)
 
-type RetryError =
-    { error :: Error
+type RetryError
+  = { error :: Error
     }

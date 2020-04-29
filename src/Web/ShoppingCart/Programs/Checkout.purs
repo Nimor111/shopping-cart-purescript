@@ -1,9 +1,8 @@
 module Web.ShoppingCart.Programs.Checkout
-        ( checkout
-        ) where
+  ( checkout
+  ) where
 
 import Prelude
-
 import Control.Monad.Error.Class (class MonadError, try, catchError, throwError)
 import Data.Time.Duration (Milliseconds(..))
 import Data.Variant (Variant)
@@ -27,66 +26,71 @@ import Web.ShoppingCart.Services.Orders (Orders)
 import Web.ShoppingCart.Services.Payments (Payments)
 import Web.ShoppingCart.Services.ShoppingCart (ShoppingCart)
 
-type CheckoutError r = Variant (OrderCreateFailedError + PaymentFailedError + r)
+type CheckoutError r
+  = Variant (OrderCreateFailedError + PaymentFailedError + r)
 
-checkout
-    :: forall r m
-    .  MonadAff m
-    => MonadError (CheckoutError r) m
-    => Background m
-    => Payments m
-    -> ShoppingCart m
-    -> Orders m
-    -> UserId
-    -> Card
-    -> m OrderId
+checkout ::
+  forall r m.
+  MonadAff m =>
+  MonadError (CheckoutError r) m =>
+  Background m =>
+  Payments m ->
+  ShoppingCart m ->
+  Orders m ->
+  UserId ->
+  Card ->
+  m OrderId
 checkout paymentsClient shoppingCartClient ordersClient userId card = do
-    cart <- shoppingCartClient.get userId
-    paymentId <- processPayment paymentsClient (payment cart)
-    orderId <- createOrder ordersClient userId paymentId (cart.cartTotalItems) (cart.cartTotal)
-    void $ try $ shoppingCartClient.delete userId
+  cart <- shoppingCartClient.get userId
+  paymentId <- processPayment paymentsClient (payment cart)
+  orderId <- createOrder ordersClient userId paymentId (cart.cartTotalItems) (cart.cartTotal)
+  void $ try $ shoppingCartClient.delete userId
+  pure orderId
+  where
+  payment :: CartTotal -> Payment
+  payment cart = { paymentUserId: userId, paymentTotal: (cart.cartTotal), paymentCard: card }
 
-    pure orderId
-    where
-       payment :: CartTotal -> Payment
-       payment cart = {paymentUserId: userId, paymentTotal: (cart.cartTotal), paymentCard: card}
-
-createOrder
-    :: forall r m
-    .  MonadAff m
-    => MonadError (Variant (OrderCreateFailedError + r)) m
-    => Background m
-    => Orders m
-    -> UserId
-    -> PaymentId
-    -> Array CartItem
-    -> Money
-    -> m OrderId
+createOrder ::
+  forall r m.
+  MonadAff m =>
+  MonadError (Variant (OrderCreateFailedError + r)) m =>
+  Background m =>
+  Orders m ->
+  UserId ->
+  PaymentId ->
+  Array CartItem ->
+  Money ->
+  m OrderId
 createOrder ordersClient userId paymentId cartItems cartTotal = backgroundAction $ recovering retryPolicy checks action
-    where
-        backgroundAction :: m OrderId -> m OrderId
-        backgroundAction fa = fa `catchError` \err -> do
-            liftEffect $ log "Creating order failed, rescheduling..."
-            schedule (backgroundAction fa) (Milliseconds 10000.0)
-            throwError orderCreateFailedError
+  where
+  backgroundAction :: m OrderId -> m OrderId
+  backgroundAction fa =
+    fa
+      `catchError`
+        \err -> do
+          liftEffect $ log "Creating order failed, rescheduling..."
+          schedule (backgroundAction fa) (Milliseconds 10000.0)
+          throwError orderCreateFailedError
 
-        action :: RetryStatus -> m OrderId
-        action _ = do
-            liftEffect $ log "Creating order..."
-            ordersClient.create userId paymentId cartItems cartTotal
+  action :: RetryStatus -> m OrderId
+  action _ = do
+    liftEffect $ log "Creating order..."
+    ordersClient.create userId paymentId cartItems cartTotal
 
-processPayment
-    :: forall r m
-    .  MonadAff m
-    => MonadError (Variant (PaymentFailedError + r)) m
-    => Payments m
-    -> Payment
-    -> m PaymentId
+processPayment ::
+  forall r m.
+  MonadAff m =>
+  MonadError (Variant (PaymentFailedError + r)) m =>
+  Payments m ->
+  Payment ->
+  m PaymentId
 processPayment paymentsClient payment = recovering retryPolicy checks action
-    where
-        action :: RetryStatus -> m PaymentId
-        action _ = do
-            liftEffect $ log "Processing payment..."
-            paymentsClient.process payment `catchError` \err -> do
-               liftEffect $ log ("Failed to process payment..." <> show payment)
-               throwError $ paymentFailedError payment
+  where
+  action :: RetryStatus -> m PaymentId
+  action _ = do
+    liftEffect $ log "Processing payment..."
+    paymentsClient.process payment
+      `catchError`
+        \err -> do
+          liftEffect $ log ("Failed to process payment..." <> show payment)
+          throwError $ paymentFailedError payment

@@ -1,7 +1,6 @@
 module Web.ShoppingCart.Http.Routes.Checkout where
 
 import Prelude
-
 import Control.Monad.Error.Class (class MonadError, class MonadThrow, throwError)
 import Control.Monad.Except.Trans (ExceptT(..), runExceptT)
 import Control.Monad.Reader.Class (class MonadAsk)
@@ -32,48 +31,53 @@ import Web.ShoppingCart.Services.Orders (Orders)
 import Web.ShoppingCart.Services.Payments (Payments)
 import Web.ShoppingCart.Services.ShoppingCart (ShoppingCart)
 
+type HandleCheckoutError r
+  = Variant (JsonDecodeError + OrderCreateFailedError + PaymentFailedError + r)
 
-type HandleCheckoutError r = Variant (JsonDecodeError + OrderCreateFailedError + PaymentFailedError + r)
-
-checkoutRouter
-    :: forall r m
-    .  MonadAff m
-    => MonadAsk Context m
-    => MonadError (HandleCheckoutError r) m
-    => Background m
-    => Payments m
-    -> ShoppingCart m
-    -> Orders m
-    -> HTTPure.Request
-    -> m HTTPure.Response
+checkoutRouter ::
+  forall r m.
+  MonadAff m =>
+  MonadAsk Context m =>
+  MonadError (HandleCheckoutError r) m =>
+  Background m =>
+  Payments m ->
+  ShoppingCart m ->
+  Orders m ->
+  HTTPure.Request ->
+  m HTTPure.Response
 checkoutRouter payments cart orders req@{ path, method: Post, body } = do
-    res <- handleCheckout payments cart orders (wrap $ path !@ 0) body req
+  res <- handleCheckout payments cart orders (wrap $ path !@ 0) body req
+  case res of
+    Left err -> throwError err
+    Right v -> HTTPure.created
 
-    case res of
-        Left err -> throwError err
-        Right v -> HTTPure.created
 checkoutRouter _ _ _ _ = HTTPure.notFound
 
-handleCheckout
-    :: forall r m
-    .  MonadAff m
-    => MonadAsk Context m
-    => MonadError (HandleCheckoutError r) m
-    => Background m
-    => Payments m
-    -> ShoppingCart m
-    -> Orders m
-    -> UserId
-    -> String
-    -> HTTPure.Request
-    -> m (Either (HandleCheckoutError r) OrderId)
-handleCheckout payments cart orders userId body req = runExceptT $ do
-    card <- ExceptT $ pure $ mapJsonError body
-    ExceptT $ sequence $ Right (checkout payments cart orders userId card)
-
-    where
-        mapJsonError :: forall r1. String -> Either (Variant (JsonDecodeError + r1)) Card
-        mapJsonError body = map (\c -> case c of
-            Left errors -> Left $ jsonDecodeError errors
-            Right v -> Right v)
-            JSON.readJSON body
+handleCheckout ::
+  forall r m.
+  MonadAff m =>
+  MonadAsk Context m =>
+  MonadError (HandleCheckoutError r) m =>
+  Background m =>
+  Payments m ->
+  ShoppingCart m ->
+  Orders m ->
+  UserId ->
+  String ->
+  HTTPure.Request ->
+  m (Either (HandleCheckoutError r) OrderId)
+handleCheckout payments cart orders userId body req =
+  runExceptT
+    $ do
+        card <- ExceptT $ pure $ mapJsonError body
+        ExceptT $ sequence $ Right (checkout payments cart orders userId card)
+  where
+  mapJsonError :: forall r1. String -> Either (Variant (JsonDecodeError + r1)) Card
+  mapJsonError body =
+    map
+      ( \c -> case c of
+          Left errors -> Left $ jsonDecodeError errors
+          Right v -> Right v
+      )
+      JSON.readJSON
+      body

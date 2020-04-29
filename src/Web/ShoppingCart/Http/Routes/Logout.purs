@@ -1,7 +1,6 @@
 module Web.ShoppingCart.Http.Routes.Logout where
 
 import Prelude
-
 import Data.Maybe (Maybe(..))
 import Control.Monad.Error.Class (class MonadError, class MonadThrow, throwError)
 import Control.Monad.Except.Trans (ExceptT(..), runExceptT)
@@ -27,39 +26,41 @@ import Web.ShoppingCart.Http.Routes.Checkout (HandleCheckoutError)
 import Web.ShoppingCart.Http.Routes.Headers (responseHeaders)
 import Web.ShoppingCart.Services.Auth (Auth)
 
-type HandleLogoutError r = Variant (JwtTokenMissingError + r)
+type HandleLogoutError r
+  = Variant (JwtTokenMissingError + r)
 
-logoutRouter
-    :: forall r m
-    .  MonadAff m
-    => MonadAsk Context m
-    => MonadError (HandleLogoutError r) m
-    => Auth m
-    -> HTTPure.Request
-    -> m HTTPure.Response
-logoutRouter authClient req@{ path: ["logout"], method: Post, headers } = do
-    res <- handleLogout authClient headers req
+logoutRouter ::
+  forall r m.
+  MonadAff m =>
+  MonadAsk Context m =>
+  MonadError (HandleLogoutError r) m =>
+  Auth m ->
+  HTTPure.Request ->
+  m HTTPure.Response
+logoutRouter authClient req@{ path: [ "logout" ], method: Post, headers } = do
+  res <- handleLogout authClient headers req
+  case res of
+    Left err -> throwError err
+    Right v -> HTTPure.noContent
 
-    case res of
-        Left err -> throwError err
-        Right v -> HTTPure.noContent
 logoutRouter _ _ = HTTPure.notFound
 
-handleLogout
-    :: forall r m
-    .  MonadAff m
-    => MonadAsk Context m
-    => MonadError (HandleLogoutError r) m
-    => Auth m
-    -> Headers
-    -> HTTPure.Request
-    -> m (Either (HandleLogoutError r) Unit)
-handleLogout authClient headers req = runExceptT $ do
-    token <- ExceptT $ pure $ mapHeaders headers
-    ExceptT $ sequence $ Right (authClient.logout token)
-
-    where
-        mapHeaders :: Headers -> Either (Variant (JwtTokenMissingError + r)) JwtToken
-        mapHeaders headers = case headers !! "Authorization" of
-            Nothing -> Left jwtTokenMissingError
-            Just v -> Right (wrap v)
+handleLogout ::
+  forall r m.
+  MonadAff m =>
+  MonadAsk Context m =>
+  MonadError (HandleLogoutError r) m =>
+  Auth m ->
+  Headers ->
+  HTTPure.Request ->
+  m (Either (HandleLogoutError r) Unit)
+handleLogout authClient headers req =
+  runExceptT
+    $ do
+        token <- ExceptT $ pure $ mapHeaders headers
+        ExceptT $ sequence $ Right (authClient.logout token)
+  where
+  mapHeaders :: Headers -> Either (Variant (JwtTokenMissingError + r)) JwtToken
+  mapHeaders headers = case headers !! "Authorization" of
+    Nothing -> Left jwtTokenMissingError
+    Just v -> Right (wrap v)

@@ -1,9 +1,8 @@
 module Web.ShoppingCart.Http.Routes.Brands
-        ( brandsRouter
-        ) where
+  ( brandsRouter
+  ) where
 
 import Prelude
-
 import Control.Monad.Error.Class (class MonadThrow)
 import Control.Monad.Reader.Class (class MonadAsk)
 import Effect.Aff.Class (class MonadAff)
@@ -17,28 +16,27 @@ import Web.ShoppingCart.Context (Context)
 import Web.ShoppingCart.Http.Routes.Headers (responseHeaders)
 import Web.ShoppingCart.Services.Brands (Brands)
 
+brandsRouter ::
+  forall r m.
+  MonadAff m =>
+  MonadAsk Context m =>
+  MonadThrow (AppError r) m =>
+  Brands m ->
+  HTTPure.Request ->
+  m HTTPure.Response
+brandsRouter brands req@{ path: [ "" ] } = getBrands brands req
 
-brandsRouter
-    :: forall r m
-    .  MonadAff m
-    => MonadAsk Context m
-    => MonadThrow (AppError r) m
-    => Brands m
-    -> HTTPure.Request
-    -> m HTTPure.Response
-brandsRouter brands req@{ path: [""] } = getBrands brands req
 brandsRouter _ _ = HTTPure.notFound
 
-getBrands
-    :: forall r m
-    .  MonadAff m
-    => MonadAsk Context m
-    => MonadThrow (AppError r) m
-    => Brands m
-    -> HTTPure.Request
-    -> m HTTPure.Response
+getBrands ::
+  forall r m.
+  MonadAff m =>
+  MonadAsk Context m =>
+  MonadThrow (AppError r) m =>
+  Brands m ->
+  HTTPure.Request ->
+  m HTTPure.Response
 getBrands b req = do
-    liftEffect $ log "Fetching all brands..."
-    brands <- b.findAll
-
-    HTTPure.ok' responseHeaders (JSON.writeJSON brands)
+  liftEffect $ log "Fetching all brands..."
+  brands <- b.findAll
+  HTTPure.ok' responseHeaders (JSON.writeJSON brands)

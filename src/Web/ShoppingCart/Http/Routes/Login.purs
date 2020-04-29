@@ -1,7 +1,6 @@
 module Web.ShoppingCart.Http.Routes.Login where
 
 import Prelude
-
 import Control.Monad.Error.Class (class MonadError, class MonadThrow, throwError)
 import Control.Monad.Except.Trans (ExceptT(..), runExceptT)
 import Control.Monad.Reader.Class (class MonadAsk)
@@ -23,39 +22,41 @@ import Web.ShoppingCart.Error (type (+), JsonDecodeError, LoginError, jsonDecode
 import Web.ShoppingCart.Http.Routes.Headers (responseHeaders)
 import Web.ShoppingCart.Services.Auth (Auth)
 
-type HandleLoginError r = Variant (LoginError + JsonDecodeError + r)
+type HandleLoginError r
+  = Variant (LoginError + JsonDecodeError + r)
 
-loginRouter
-    :: forall r m
-    .  MonadAff m
-    => MonadAsk Context m
-    => MonadError (HandleLoginError r) m
-    => Auth m
-    -> HTTPure.Request
-    -> m HTTPure.Response
-loginRouter authClient req@{ path: ["login"], method: Post, body } = do
-    res <- handleLogin authClient body req
+loginRouter ::
+  forall r m.
+  MonadAff m =>
+  MonadAsk Context m =>
+  MonadError (HandleLoginError r) m =>
+  Auth m ->
+  HTTPure.Request ->
+  m HTTPure.Response
+loginRouter authClient req@{ path: [ "login" ], method: Post, body } = do
+  res <- handleLogin authClient body req
+  case res of
+    Left err -> throwError err
+    Right v -> HTTPure.ok' responseHeaders (JSON.writeJSON v)
 
-    case res of
-        Left err -> throwError err
-        Right v -> HTTPure.ok' responseHeaders  (JSON.writeJSON v)
 loginRouter _ _ = HTTPure.notFound
 
-handleLogin
-    :: forall r m
-    .  MonadAff m
-    => MonadAsk Context m
-    => MonadError (HandleLoginError r) m
-    => Auth m
-    -> String
-    -> HTTPure.Request
-    -> m (Either (HandleLoginError r) JwtToken)
-handleLogin authClient body req = runExceptT $ do
-    user <- ExceptT $ pure $ mapJsonError body
-    ExceptT $ sequence $ Right (authClient.login user.userName user.password)
-
-    where
-        mapJsonError :: forall r1. String -> Either (Variant (JsonDecodeError + r1)) LoginUser
-        mapJsonError body = case JSON.readJSON body of
-            Left errors -> Left $ jsonDecodeError errors
-            Right v -> Right v
+handleLogin ::
+  forall r m.
+  MonadAff m =>
+  MonadAsk Context m =>
+  MonadError (HandleLoginError r) m =>
+  Auth m ->
+  String ->
+  HTTPure.Request ->
+  m (Either (HandleLoginError r) JwtToken)
+handleLogin authClient body req =
+  runExceptT
+    $ do
+        user <- ExceptT $ pure $ mapJsonError body
+        ExceptT $ sequence $ Right (authClient.login user.userName user.password)
+  where
+  mapJsonError :: forall r1. String -> Either (Variant (JsonDecodeError + r1)) LoginUser
+  mapJsonError body = case JSON.readJSON body of
+    Left errors -> Left $ jsonDecodeError errors
+    Right v -> Right v

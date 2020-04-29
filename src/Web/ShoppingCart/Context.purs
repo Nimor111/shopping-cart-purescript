@@ -1,12 +1,11 @@
 module Web.ShoppingCart.Context
-        ( Context
-        )
-        where
+  ( Context
+  ) where
 
 import Database.PostgreSQL as PostgreSQL
 
-type Context =
-    { conn :: PostgreSQL.Connection
+type Context
+  = { conn :: PostgreSQL.Connection
     , other :: String
     , jwtSecret :: String
     }
