@@ -7,12 +7,13 @@ let
     pkgs.fetchFromGitHub {
       owner = "justinwoo";
       repo = "easy-purescript-nix";
-      rev = "aa3e608608232f4a009b5c132ae763fdabfb4aba";
-      sha256 = "0y6jikncxs9l2zgngbd1775f1zy5s1hdc5rhkyzsyaalcl5cajk8";
+      rev = "d4879bfd2b595d7fbd37da1a7bea5d0361975eb3";
+      sha256 = "0kzwg3mwziwx378kvbzhayy65abvk1axi12zvf2f92cs53iridwh";
     }
   ) {
     inherit pkgs;
   };
+
 in
 mkYarnPackage rec {
   name = "shopping-cart";
@@ -32,8 +33,10 @@ mkYarnPackage rec {
   postFixup = ''
     echo $PWD
     ls $out
-    ${easy-ps.spago}/bin/spago bundle-app --no-install \
-      --no-build --main Main --to dist/app.js
+    #${easy-ps.spago}/bin/spago bundle-app --no-install \
+     #--no-build --main Main --to dist/app.js
+    # FIXME use command above when this issue is resolved: https://github.com/purescript/spago/issues/634
+    ${easy-ps.purs}/bin/purs bundle output/*/*.js -m Main --main Main -o dist/app.js
     mkdir -p $out/dist
     cp -r dist $out/
     ln -s $out/libexec/${name}/node_modules $out/dist

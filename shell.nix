@@ -5,16 +5,16 @@ let
   spago2nix = import (pkgs.fetchFromGitHub {
       owner = "justinwoo";
       repo = "spago2nix";
-      rev = "262020b1bae872dac6db855fafe58a9999c91a28";
-      sha256 = "0l678qjb73f1kvkk3l1pby2qg272dj166yxl7b1mcb0xhnjgig7g";
+      rev = "704fc193dd1066d3bee91e525ad5ea4876ad990e";
+      sha256 = "1g82s3wz18lxif3pdd9nk6vb3c5cy1i1w5xpkl9gpvc44x8w7lrl";
     }) {};
 
   easy-ps = import (
     pkgs.fetchFromGitHub {
       owner = "justinwoo";
       repo = "easy-purescript-nix";
-      rev = "aa3e608608232f4a009b5c132ae763fdabfb4aba";
-      sha256 = "0y6jikncxs9l2zgngbd1775f1zy5s1hdc5rhkyzsyaalcl5cajk8";
+      rev = "d4879bfd2b595d7fbd37da1a7bea5d0361975eb3";
+      sha256 = "0kzwg3mwziwx378kvbzhayy65abvk1axi12zvf2f92cs53iridwh";
     }
   ) {
     inherit pkgs;
