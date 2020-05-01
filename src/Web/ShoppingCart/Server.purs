@@ -53,9 +53,10 @@ authRoutes ::
   forall r m.
   MonadAff m =>
   MonadAsk Context m =>
-  MonadError (AppError r) m {--=> Brands m--} =>
+  MonadError (AppError r) m =>
+  Brands m ->
   Array (Route m)
-authRoutes =
+authRoutes b =
   [ route [ "error" ] errorOut
   ]
 
@@ -70,9 +71,6 @@ type Services m
     {--, shoppingCart :: ShoppingCart m--}
     }
 
--- TODO this will be the real server
-{--server :: Context -> Services Aff -> HTTPure.ServerM--}
-{--server services ctx = HTTPure.serve 8080 (appMiddleware ctx (router (appRoutes services))) $ Console.log "Server up on port 8080"--}
 server :: forall r. Context -> Services (App r) -> HTTPure.ServerM
 server ctx services = HTTPure.serve 8080 middlewares $ Console.log "Server up on port 8080"
   where
