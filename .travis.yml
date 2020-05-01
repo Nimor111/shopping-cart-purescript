@@ -1,4 +1,5 @@
 language: nix
 
 script:
+  - echo $PWD
   - make build
