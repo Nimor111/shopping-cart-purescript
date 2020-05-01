@@ -2,6 +2,7 @@ module Web.ShoppingCart.Database
   ( hoistSelda
   , people
   , createPeople
+  , execute
   ) where
 
 import Prelude

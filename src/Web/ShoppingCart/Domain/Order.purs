@@ -5,11 +5,12 @@ module Web.ShoppingCart.Domain.Order
   , OrderItem(..)
   ) where
 
-import Simple.JSON as JSON
 import Data.Map (Map)
+import Data.Newtype (class Newtype)
+import Simple.JSON as JSON
 import Web.ShoppingCart.Domain.Item (ItemId(..), Money(..))
 import Web.ShoppingCart.Domain.ShoppingCart (Quantity(..))
-import Data.Newtype (class Newtype)
+import Web.ShoppingCart.Domain.User (User, UserId(..))
 
 newtype OrderId
   = OrderId String
@@ -37,6 +38,7 @@ type OrderItem
 type Order
   = { orderId :: OrderId
     , orderPaymentId :: PaymentId
+    , orderUserId :: UserId
     , orderItems :: Array (OrderItem)
     , orderTotal :: Money
     }
