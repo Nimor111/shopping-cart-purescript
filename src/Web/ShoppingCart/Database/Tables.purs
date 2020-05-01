@@ -1,6 +1,11 @@
 module Web.ShoppingCart.Database.Tables
     ( createTables
     , dropTables
+    , brands
+    , categories
+    , items
+    , orders
+    , users
     ) where
 
 import Prelude
