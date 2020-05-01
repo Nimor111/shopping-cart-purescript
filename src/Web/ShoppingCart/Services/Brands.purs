@@ -4,11 +4,12 @@ module Web.ShoppingCart.Services.Brands
   ) where
 
 import Prelude
+import Data.Newtype (unwrap)
 import Data.Show (show)
 import Database.PostgreSQL as PostgreSQL
 import Effect.Aff (Aff)
 import Effect.Class.Console (log, logShow)
-import Selda.PG.Class (query)
+import Selda.PG.Class (insert1_, query)
 import Selda.Query (selectFrom)
 import Web.ShoppingCart.App (App)
 import Web.ShoppingCart.Database (generateSQLStringFromQuery, hoistSelda)
@@ -20,7 +21,7 @@ type Brands m
     , create :: Brand -> m Unit
     }
 
-type BrandDTO
+type DBBrand
   = { id :: String
     , name :: String
     }
@@ -31,13 +32,17 @@ mkBrands =
   , create
   }
 
-toBrand :: BrandDTO -> Brand
-toBrand { id, name } = { brandId: BrandId id, brandName: BrandName name }
+toBrand :: DBBrand -> Brand
+toBrand { id, name } = { id: BrandId id, name: BrandName name }
 
 create :: forall r. Brand -> App r Unit
-create brand =
+create { id, name } =
   hoistSelda do
-    log $ "Creating brand" <> show brand
+    let
+      str = generateSQLStringFromQuery
+    let
+      brandData = { id: unwrap id, name: unwrap name }
+    insert1_ brands brandData
 
 findAll :: forall r. App r (Array Brand)
 findAll =
@@ -49,5 +54,5 @@ findAll =
         selectFrom brands \{ id, name } -> do
           pure { id, name }
     log $ str sql
-    brandDTOs <- query sql
-    pure $ map toBrand brandDTOs
+    dbBrands <- query sql
+    pure $ map toBrand dbBrands

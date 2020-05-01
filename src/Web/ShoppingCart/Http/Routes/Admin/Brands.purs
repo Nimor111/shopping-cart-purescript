@@ -11,7 +11,7 @@ import Data.Newtype (wrap)
 import Data.Refinery.Core (Refined)
 import Data.Show (show)
 import Data.Traversable (sequence)
-import Data.UUID (genUUID)
+import Data.UUID (genUUID, toString)
 import Data.Variant (Variant)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
@@ -38,7 +38,7 @@ brandsRouter ::
   Brands m ->
   HTTPure.Request ->
   m HTTPure.Response
-brandsRouter brands req@{ method: Post, path: [ "" ], body } = do
+brandsRouter brands req@{ method: Post, path: [], body } = do
   res <- createBrand brands body
   case res of
     Left err -> throwError err
@@ -58,7 +58,7 @@ createBrand brands body =
     $ do
         refinedBrandName <- ExceptT $ pure $ mapJsonError body
         uuid <- ExceptT $ sequence $ Right $ liftEffect genUUID
-        ExceptT $ sequence $ Right (brands.create $ { brandId: (wrap $ show uuid), brandName: toDomain refinedBrandName })
+        ExceptT $ sequence $ Right (brands.create $ { id: (wrap $ toString uuid), name: toDomain refinedBrandName })
   where
   mapJsonError :: String -> Either (Variant (JsonDecodeError + r)) BrandNamePred
   mapJsonError body = case JSON.readJSON body of

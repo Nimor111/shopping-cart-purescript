@@ -16,6 +16,7 @@ import Web.ShoppingCart.Context (Context)
 import Web.ShoppingCart.Error (handleRequestError)
 import Web.ShoppingCart.Http.Middlewares.Auth (authMiddleware)
 import Web.ShoppingCart.Http.Routes.Brands (brandsRouter)
+import Web.ShoppingCart.Http.Routes.Admin.Brands as BrandAdmin
 import Web.ShoppingCart.Router (Route, errorOut, route, router, sayHello)
 import Web.ShoppingCart.Services.Auth (Auth)
 import Web.ShoppingCart.Services.Brands (Brands)
@@ -45,6 +46,7 @@ appRoutes b =
   [ route [ "hello" ] sayHello
   , route [ "error" ] errorOut
   , route [ "brands" ] (brandsRouter b)
+  , route [ "admin", "brands" ] (BrandAdmin.brandsRouter b)
   ]
 
 authRoutes ::

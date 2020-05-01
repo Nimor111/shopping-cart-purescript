@@ -14,6 +14,8 @@ import HTTPure.Response (Response, notFound, ok') as HTTPure
 import Simple.JSON as JSON
 import Web.ShoppingCart.App (AppError)
 import Web.ShoppingCart.Context (Context)
+import Web.ShoppingCart.Domain.Brand (Brand)
+import Web.ShoppingCart.Http.Routes.Admin.Brands (createBrand)
 import Web.ShoppingCart.Http.Routes.Headers (responseHeaders)
 import Web.ShoppingCart.Services.Brands (Brands)
 
