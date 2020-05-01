@@ -24,7 +24,7 @@ categoriesRouter ::
   Categories m ->
   HTTPure.Request ->
   m HTTPure.Response
-categoriesRouter categories req@{ path: [ "" ] } = getCategories categories req
+categoriesRouter categories req@{ path: [] } = getCategories categories req
 
 categoriesRouter _ _ = HTTPure.notFound
 

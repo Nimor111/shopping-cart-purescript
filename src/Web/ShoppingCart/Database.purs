@@ -1,8 +1,7 @@
 module Web.ShoppingCart.Database
   ( hoistSelda
-  , people
-  , createPeople
   , execute
+  , generateSQLStringFromQuery
   ) where
 
 import Prelude
@@ -15,7 +14,11 @@ import Database.PostgreSQL (PGError)
 import Database.PostgreSQL as PostgreSQL
 import Effect.Aff (Aff, error)
 import Effect.Aff.Class (class MonadAff)
+import Selda.Col (class GetCols)
+import Selda.PG (showPG)
 import Selda.Query.Class (hoistSeldaWith)
+import Selda.Query.ShowStatement (showQuery)
+import Selda.Query.Type (FullQuery(..))
 import Selda.Table (Table(..))
 import Web.ShoppingCart.App (AppError)
 import Web.ShoppingCart.Error (DatabaseError, databaseError, type (+))
@@ -33,20 +36,9 @@ execute sql conn = do
   PostgreSQL.execute conn (PostgreSQL.Query sql) PostgreSQL.Row0
     >>= maybe (pure unit) (throwError <<< error <<< show)
 
-createPeople ∷ PostgreSQL.Connection → Aff Unit
-createPeople =
-  execute
-    """
-  CREATE TABLE IF NOT EXISTS people (
-    id INTEGER PRIMARY KEY,
-    name TEXT NOT NULL,
-    age INTEGER
-  );"""
-
-people ∷
-  Table
-    ( id ∷ Int
-    , name ∷ String
-    , age ∷ Maybe Int
-    )
-people = Table { name: "people" }
+generateSQLStringFromQuery ∷
+  ∀ s r.
+  GetCols r ⇒
+  FullQuery s { | r } →
+  String
+generateSQLStringFromQuery = showQuery >>> showPG >>> _.strQuery

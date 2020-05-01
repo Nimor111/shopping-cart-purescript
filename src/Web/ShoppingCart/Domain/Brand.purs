@@ -17,6 +17,7 @@ import Data.List.Types (NonEmptyList(..))
 import Data.Newtype (class Newtype, wrap)
 import Data.NonEmpty (NonEmpty(..), (:|))
 import Data.Refinery.Core (Refined, refine, unrefine)
+import Data.Show (class Show)
 import Foreign (ForeignError(..), readString)
 import Foreign.Object (empty)
 import Simple.JSON (class ReadForeign, class WriteForeign, readImpl, writeImpl)
@@ -31,6 +32,10 @@ newtype BrandId
 
 newtype BrandName
   = BrandName String
+
+derive newtype instance showBrandId :: Show BrandId
+
+derive newtype instance showBrandName :: Show BrandName
 
 instance writeForeignBrandNamePred :: WriteForeign BrandNamePred where
   writeImpl (BrandNamePred ref) = writeImpl (unrefine ref)

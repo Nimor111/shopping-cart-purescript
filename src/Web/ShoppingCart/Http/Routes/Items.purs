@@ -30,7 +30,7 @@ itemsRouter ::
   Items m ->
   HTTPure.Request ->
   m HTTPure.Response
-itemsRouter items req@{ path: [ "" ] } = do
+itemsRouter items req@{ path: [] } = do
   res <- getItemsByBrandName items req
   case res of
     Left err -> throwError err

@@ -1,15 +1,14 @@
 module Web.ShoppingCart.Database.Tables
-    ( createTables
-    , dropTables
-    , brands
-    , categories
-    , items
-    , orders
-    , users
-    ) where
+  ( createTables
+  , dropTables
+  , brands
+  , categories
+  , items
+  , orders
+  , users
+  ) where
 
 import Prelude
-
 import Control.Monad.Error.Class (class MonadThrow)
 import Control.Monad.Except (ExceptT, throwError)
 import Control.Monad.Reader (class MonadAsk, ReaderT)
@@ -28,7 +27,6 @@ import Web.ShoppingCart.Domain.Brand (Brand, BrandId(..), BrandName(..))
 import Web.ShoppingCart.Domain.Category (Category, CategoryId(..), CategoryName(..))
 import Web.ShoppingCart.Domain.Order (OrderItem)
 import Web.ShoppingCart.Error (DatabaseError, databaseError, type (+))
-
 
 createTables :: PostgreSQL.Connection -> Aff Unit
 createTables conn = do
@@ -54,7 +52,9 @@ brands :: Table ( id :: String, name :: String )
 brands = Table { name: "brands" }
 
 createBrands :: PostgreSQL.Connection -> Aff Unit
-createBrands = execute """
+createBrands =
+  execute
+    """
   CREATE TABLE IF NOT EXISTS brands (
     id UUID PRIMARY KEY,
     name TEXT NOT NULL
@@ -62,7 +62,9 @@ createBrands = execute """
 """
 
 dropBrands :: PostgreSQL.Connection -> Aff Unit
-dropBrands = execute """
+dropBrands =
+  execute
+    """
     DROP TABLE brands;
 """
 
@@ -70,7 +72,9 @@ categories :: Table ( id :: String, name :: String )
 categories = Table { name: "categories" }
 
 createCategories :: PostgreSQL.Connection -> Aff Unit
-createCategories = execute """
+createCategories =
+  execute
+    """
   CREATE TABLE IF NOT EXISTS categories (
     id UUID PRIMARY KEY,
     name TEXT NOT NULL
@@ -78,7 +82,9 @@ createCategories = execute """
 """
 
 dropCategories :: PostgreSQL.Connection -> Aff Unit
-dropCategories = execute """
+dropCategories =
+  execute
+    """
     DROP TABLE categories;
 """
 
@@ -86,7 +92,9 @@ items :: Table ( id :: String, name :: String, description :: String, price :: I
 items = Table { name: "items" }
 
 createItems :: PostgreSQL.Connection -> Aff Unit
-createItems = execute """
+createItems =
+  execute
+    """
   CREATE TABLE IF NOT EXISTS items (
     id UUID PRIMARY KEY,
     name TEXT NOT NULL,
@@ -104,7 +112,9 @@ createItems = execute """
 """
 
 dropItems :: PostgreSQL.Connection -> Aff Unit
-dropItems = execute """
+dropItems =
+  execute
+    """
     DROP TABLE items;
 """
 
@@ -112,7 +122,9 @@ orders :: Table ( id :: String, total :: Int, userId :: String, paymentId :: Str
 orders = Table { name: "orders" }
 
 createOrders :: PostgreSQL.Connection -> Aff Unit
-createOrders = execute """
+createOrders =
+  execute
+    """
   CREATE TABLE IF NOT EXISTS orders (
     id UUID PRIMARY KEY,
     payment_id UUID UNIQUE NOT NULL,
@@ -126,7 +138,9 @@ createOrders = execute """
 """
 
 dropOrders :: PostgreSQL.Connection -> Aff Unit
-dropOrders = execute """
+dropOrders =
+  execute
+    """
     DROP TABLE orders;
 """
 
@@ -134,7 +148,9 @@ users :: Table ( id :: String, userName :: String, password :: String )
 users = Table { name: "users" }
 
 createUsers :: PostgreSQL.Connection -> Aff Unit
-createUsers = execute """
+createUsers =
+  execute
+    """
   CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY,
     username TEXT NOT NULL,
@@ -143,6 +159,8 @@ createUsers = execute """
 """
 
 dropUsers :: PostgreSQL.Connection -> Aff Unit
-dropUsers = execute """
+dropUsers =
+  execute
+    """
     DROP TABLE users;
 """
