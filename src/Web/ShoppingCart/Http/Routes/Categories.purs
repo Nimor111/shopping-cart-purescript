@@ -8,6 +8,7 @@ import Control.Monad.Reader.Class (class MonadAsk)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
+import HTTPure.Method (Method(..))
 import HTTPure.Request (Request) as HTTPure
 import HTTPure.Response (Response, notFound, ok') as HTTPure
 import Simple.JSON as JSON
@@ -24,7 +25,7 @@ categoriesRouter ::
   Categories m ->
   HTTPure.Request ->
   m HTTPure.Response
-categoriesRouter categories req@{ path: [] } = getCategories categories req
+categoriesRouter categories req@{ path: [], method: Get } = getCategories categories req
 
 categoriesRouter _ _ = HTTPure.notFound
 
