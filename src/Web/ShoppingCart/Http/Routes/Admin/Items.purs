@@ -25,13 +25,13 @@ itemsRouter ::
   Items m ->
   HTTPure.Request ->
   m HTTPure.Response
-itemsRouter items req@{ method: Post, path: [ "" ], body } = do
+itemsRouter items req@{ method: Post, path: [], body } = do
   res <- createItem items body
   case res of
     Left err -> throwError err
     Right _ -> HTTPure.created
 
-itemsRouter items req@{ method: Put, path: [ "" ], body } = do
+itemsRouter items req@{ method: Put, path: [], body } = do
   res <- updateItem items body
   case res of
     Left err -> throwError err

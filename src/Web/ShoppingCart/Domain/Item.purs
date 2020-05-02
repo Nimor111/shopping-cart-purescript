@@ -9,10 +9,25 @@ module Web.ShoppingCart.Domain.Item
   ) where
 
 import Data.Newtype (class Newtype)
+import Data.Refinery.Core (Refined)
+import Data.Refinery.Predicate.Numeric (Pos)
 import Data.Show (class Show)
 import Simple.JSON as JSON
 import Web.ShoppingCart.Domain.Brand (Brand, BrandId)
 import Web.ShoppingCart.Domain.Category (Category, CategoryId)
+import Web.ShoppingCart.Domain.Refined (NonEmptyString, ValidUUID)
+
+newtype ItemUUIDPred
+  = ItemUUIDPred (Refined ValidUUID String)
+
+newtype MoneyPred
+  = MoneyPred (Refined Pos Number)
+
+newtype ItemNamePred
+  = ItemNamePred (Refined NonEmptyString String)
+
+newtype ItemDescriptionPred
+  = ItemDescriptionPred (Refined NonEmptyString String)
 
 newtype ItemId
   = ItemId String

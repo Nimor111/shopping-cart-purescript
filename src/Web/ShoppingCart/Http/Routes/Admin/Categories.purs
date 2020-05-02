@@ -18,7 +18,8 @@ import HTTPure.Request (Request) as HTTPure
 import HTTPure.Response (Response, created, notFound, ok') as HTTPure
 import Simple.JSON as JSON
 import Web.ShoppingCart.Context (Context)
-import Web.ShoppingCart.Domain.Category (Category, CategoryName(..), CategoryNamePred(..), toDomain)
+import Web.ShoppingCart.Domain.Category (Category, CategoryName(..), RefinedCategoryDTO(..))
+import Web.ShoppingCart.Domain.RefinedPred (nameToDomain)
 import Web.ShoppingCart.Error (JsonDecodeError, jsonDecodeError, type (+))
 import Web.ShoppingCart.Services.Categories (Categories)
 
@@ -48,11 +49,11 @@ createCategory ::
 createCategory categories body =
   runExceptT
     $ do
-        refinedCategoryName <- ExceptT $ pure $ mapJsonError body
+        (RefinedCategoryDTO _ categoryName) <- ExceptT $ pure $ mapJsonError body
         uuid <- ExceptT $ sequence $ Right $ liftEffect genUUID
-        ExceptT $ sequence $ Right (categories.create $ { id: (wrap $ toString uuid), name: toDomain refinedCategoryName })
+        ExceptT $ sequence $ Right (categories.create $ { id: (wrap $ toString uuid), name: nameToDomain categoryName })
   where
-  mapJsonError :: String -> Either (Variant (JsonDecodeError + r)) CategoryNamePred
+  mapJsonError :: String -> Either (Variant (JsonDecodeError + r)) RefinedCategoryDTO
   mapJsonError body = case JSON.readJSON body of
     Left errors -> Left $ jsonDecodeError errors
     Right v -> Right v

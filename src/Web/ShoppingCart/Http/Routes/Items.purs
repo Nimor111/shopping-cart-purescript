@@ -16,8 +16,8 @@ import HTTPure.Response (Response, notFound, ok') as HTTPure
 import Simple.JSON as JSON
 import Web.ShoppingCart.App (AppError)
 import Web.ShoppingCart.Context (Context)
-import Web.ShoppingCart.Domain.Brand (BrandNamePred(..), toDomain)
 import Web.ShoppingCart.Domain.Item (Item)
+import Web.ShoppingCart.Domain.RefinedPred (NamePred(..), nameToDomain)
 import Web.ShoppingCart.Error (stringRefineError)
 import Web.ShoppingCart.Http.Routes.Headers (responseHeaders)
 import Web.ShoppingCart.Services.Items (Items)
@@ -51,9 +51,9 @@ getItemsByBrandName i req =
     $ do
         liftEffect $ log "Fetching all items by brand name..."
         refinedBrandName <- ExceptT $ pure $ mapRefinedToEither (req.query !@ "brand")
-        ExceptT $ sequence $ Right $ i.findBy (toDomain refinedBrandName)
+        ExceptT $ sequence $ Right $ i.findBy (nameToDomain refinedBrandName)
   where
-  mapRefinedToEither :: String -> Either (AppError r) BrandNamePred
+  mapRefinedToEither :: String -> Either (AppError r) NamePred
   mapRefinedToEither brandName = case refine brandName of
     Left err -> Left $ stringRefineError err
-    Right v -> Right $ BrandNamePred v
+    Right v -> Right $ NamePred v

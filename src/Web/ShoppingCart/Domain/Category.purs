@@ -2,27 +2,24 @@ module Web.ShoppingCart.Domain.Category
   ( Category(..)
   , CategoryId(..)
   , CategoryName(..)
-  , CategoryNamePred(..)
-  , toDomain
+  , RefinedCategoryDTO(..)
   ) where
 
 import Prelude
-import Data.List.Types (NonEmptyList(..))
-import Data.Maybe (Maybe)
 import Control.Monad.Except.Trans (except)
 import Data.Either (Either(..))
 import Data.List (singleton)
-import Data.Newtype (class Newtype, wrap)
-import Data.Refinery.Core (Refined, refine, unrefine)
+import Data.List.Types (NonEmptyList(..))
+import Data.Maybe (Maybe)
+import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.NonEmpty (NonEmpty(..), (:|))
+import Data.Refinery.Core (Refined, refine, unrefine)
 import Data.Show (show)
 import Foreign (ForeignError(..))
 import Simple.JSON (class ReadForeign, class WriteForeign, read, writeImpl)
 import Simple.JSON as JSON
-import Web.ShoppingCart.Domain.Refined (NonEmptyString)
-
-newtype CategoryNamePred
-  = CategoryNamePred (Refined NonEmptyString String)
+import Web.ShoppingCart.Domain.Refined (NonEmptyString, ValidUUID, refineMaybe, mapMaybeToError, mapToError)
+import Web.ShoppingCart.Domain.RefinedPred (NamePred(..), UUIDPred(..))
 
 newtype CategoryId
   = CategoryId String
@@ -30,23 +27,23 @@ newtype CategoryId
 newtype CategoryName
   = CategoryName String
 
-instance writeForeignCategoryNamePred :: WriteForeign CategoryNamePred where
-  writeImpl (CategoryNamePred ref) = writeImpl (unrefine ref)
-
 type CategoryDTO
   = { id :: Maybe String
     , name :: String
     }
 
-instance readForeignCategoryNamePred :: ReadForeign CategoryNamePred where
-  readImpl val = case read val of
-    Right (r :: CategoryDTO) -> case refine r.name of
-      Left err -> except $ Left $ NonEmptyList $ (ForeignError $ show err.evalTree) :| singleton (ForeignError err.value)
-      Right v2 -> except $ Right (CategoryNamePred v2)
-    Left err -> except $ Left err
+data RefinedCategoryDTO
+  = RefinedCategoryDTO (Maybe UUIDPred) NamePred
 
-toDomain :: CategoryNamePred -> CategoryName
-toDomain (CategoryNamePred ref) = wrap $ unrefine ref
+instance writeForeignRefinedCategory :: WriteForeign RefinedCategoryDTO where
+  writeImpl (RefinedCategoryDTO uuid name) = writeImpl { id: map (\id -> unrefine $ unwrap id) uuid, name: unrefine $ unwrap name }
+
+instance readForeignRefinedCategory :: ReadForeign RefinedCategoryDTO where
+  readImpl val = do
+    (r :: CategoryDTO) <- except $ read val
+    refinedId <- except $ mapMaybeToError $ refineMaybe r.id
+    refinedName <- except $ mapToError $ refine r.name
+    except $ Right $ RefinedCategoryDTO (map UUIDPred refinedId) (NamePred refinedName)
 
 derive instance newtypeCategoryId :: Newtype CategoryId _
 

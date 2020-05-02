@@ -24,8 +24,9 @@ import Simple.JSON (class ReadForeign)
 import Simple.JSON as JSON
 import Web.ShoppingCart.App (AppError)
 import Web.ShoppingCart.Context (Context)
-import Web.ShoppingCart.Domain.Brand (Brand, BrandName(..), BrandNamePred(..), toDomain)
+import Web.ShoppingCart.Domain.Brand (Brand, RefinedBrandDTO(..))
 import Web.ShoppingCart.Domain.Refined (NonEmptyString)
+import Web.ShoppingCart.Domain.RefinedPred (nameToDomain)
 import Web.ShoppingCart.Error (JsonDecodeError, jsonDecodeError, type (+))
 import Web.ShoppingCart.Http.Routes.Headers (responseHeaders)
 import Web.ShoppingCart.Services.Brands (Brands)
@@ -56,11 +57,11 @@ createBrand ::
 createBrand brands body =
   runExceptT
     $ do
-        refinedBrandName <- ExceptT $ pure $ mapJsonError body
+        (RefinedBrandDTO _ brandName) <- ExceptT $ pure $ mapJsonError body
         uuid <- ExceptT $ sequence $ Right $ liftEffect genUUID
-        ExceptT $ sequence $ Right (brands.create $ { id: (wrap $ toString uuid), name: toDomain refinedBrandName })
+        ExceptT $ sequence $ Right (brands.create $ { id: (wrap $ toString uuid), name: nameToDomain brandName })
   where
-  mapJsonError :: String -> Either (Variant (JsonDecodeError + r)) BrandNamePred
+  mapJsonError :: String -> Either (Variant (JsonDecodeError + r)) RefinedBrandDTO
   mapJsonError body = case JSON.readJSON body of
     Left errors -> Left $ jsonDecodeError errors
     Right v -> Right v

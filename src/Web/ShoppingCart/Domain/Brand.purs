@@ -2,8 +2,7 @@ module Web.ShoppingCart.Domain.Brand
   ( Brand(..)
   , BrandId(..)
   , BrandName(..)
-  , BrandNamePred(..)
-  , toDomain
+  , RefinedBrandDTO(..)
   ) where
 
 import Prelude
@@ -15,17 +14,15 @@ import Data.List.NonEmpty (cons)
 import Data.List.Types (List(..))
 import Data.List.Types (NonEmptyList(..))
 import Data.Maybe (Maybe)
-import Data.Newtype (class Newtype, wrap)
+import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.NonEmpty (NonEmpty(..), (:|))
-import Data.Refinery.Core (Refined, refine, unrefine)
+import Data.Refinery.Core (Refined, Error, refine, unrefine)
 import Data.Show (class Show)
 import Foreign (ForeignError(..), readString)
 import Foreign.Object (empty)
 import Simple.JSON (class ReadForeign, class WriteForeign, read, readImpl, readJSON, writeImpl)
-import Web.ShoppingCart.Domain.Refined (NonEmptyString)
-
-newtype BrandNamePred
-  = BrandNamePred (Refined NonEmptyString String)
+import Web.ShoppingCart.Domain.Refined (NonEmptyString, ValidUUID, refineMaybe, mapMaybeToError, mapToError)
+import Web.ShoppingCart.Domain.RefinedPred (UUIDPred(..), NamePred(..))
 
 newtype BrandId
   = BrandId String
@@ -37,23 +34,23 @@ derive newtype instance showBrandId :: Show BrandId
 
 derive newtype instance showBrandName :: Show BrandName
 
-instance writeForeignBrandNamePred :: WriteForeign BrandNamePred where
-  writeImpl (BrandNamePred ref) = writeImpl (unrefine ref)
-
 type BrandDTO
   = { id :: Maybe String
     , name :: String
     }
 
-instance readForeignBrandNamePred :: ReadForeign BrandNamePred where
-  readImpl val = case read val of
-    Right (r :: BrandDTO) -> case refine r.name of
-      Left err -> except $ Left $ NonEmptyList $ (ForeignError $ show err.evalTree) :| singleton (ForeignError err.value)
-      Right v2 -> except $ Right (BrandNamePred v2)
-    Left err -> except $ Left err
+data RefinedBrandDTO
+  = RefinedBrandDTO (Maybe UUIDPred) NamePred
 
-toDomain :: BrandNamePred -> BrandName
-toDomain (BrandNamePred ref) = wrap $ unrefine ref
+instance writeForeignRefinedBrand :: WriteForeign RefinedBrandDTO where
+  writeImpl (RefinedBrandDTO uuid name) = writeImpl { id: map (\id -> unrefine $ unwrap id) uuid, name: unrefine $ unwrap name }
+
+instance readForeignRefinedBrand :: ReadForeign RefinedBrandDTO where
+  readImpl val = do
+    (r :: BrandDTO) <- except $ read val
+    refinedId <- except $ mapMaybeToError $ refineMaybe r.id
+    refinedName <- except $ mapToError $ refine r.name
+    except $ Right $ RefinedBrandDTO (map UUIDPred refinedId) (NamePred refinedName)
 
 derive instance newtypeBrandId :: Newtype BrandId _
 
