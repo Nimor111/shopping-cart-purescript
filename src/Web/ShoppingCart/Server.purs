@@ -4,7 +4,6 @@ module Web.ShoppingCart.Server
   ) where
 
 import Prelude
-
 import Control.Monad.Error.Class (class MonadError, class MonadThrow)
 import Control.Monad.Reader.Class (class MonadAsk)
 import Effect.Aff.Class (class MonadAff)

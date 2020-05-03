@@ -1,7 +1,6 @@
 module Web.ShoppingCart.Http.Routes.Items where
 
 import Prelude
-
 import Control.Monad.Error.Class (class MonadThrow, throwError)
 import Control.Monad.Except.Trans (ExceptT(..), runExceptT)
 import Control.Monad.Reader.Class (class MonadAsk)
@@ -39,7 +38,7 @@ itemsRouter items req@{ path: [], method: Get } = do
     Left err -> throwError err
     Right is -> HTTPure.ok' responseHeaders (JSON.writeJSON is)
 
-itemsRouter items req@{ path: [itemId], method: Get } = do
+itemsRouter items req@{ path: [ itemId ], method: Get } = do
   res <- getItemById items itemId
   case res of
     Left err -> throwError err

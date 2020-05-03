@@ -4,7 +4,6 @@ module Web.ShoppingCart.Services.Items
   ) where
 
 import Prelude
-
 import Data.Array (head)
 import Data.Maybe (Maybe)
 import Data.Newtype (unwrap)
@@ -43,12 +42,12 @@ type DBItem
 
 mkItems :: forall r. Items (App r)
 mkItems =
-    { findAll
-    , findBy
-    , findById
-    , create
-    , update
-    }
+  { findAll
+  , findBy
+  , findById
+  , create
+  , update
+  }
 
 toItem :: DBItem -> Item
 toItem { id, name, description, price, brandId, categoryId } = { id: ItemId id, name: ItemName name, description: ItemDescription description, price: Money price, brandId: BrandId brandId, categoryId: CategoryId categoryId }
@@ -68,34 +67,33 @@ findAll =
 
 findBy :: forall r. BrandName -> App r (Array Item)
 findBy (BrandName brandName) =
-    hoistSelda do
-      let
-        str = generateSQLStringFromQuery
-      let
-        sql =
-          selectFrom items \{ id, name, description, price, brandId, categoryId } -> do
-            b <- innerJoin brands
-                   \brand -> brandId .== brand.id
-            restrict $ b.name .== (lit brandName)
-            pure { id, name, description, price, brandId, categoryId }
-      log $ str sql
-      dbItems <- query sql
-      pure $ map toItem dbItems
+  hoistSelda do
+    let
+      str = generateSQLStringFromQuery
+    let
+      sql =
+        selectFrom items \{ id, name, description, price, brandId, categoryId } -> do
+          b <-
+            innerJoin brands \brand -> brandId .== brand.id
+          restrict $ b.name .== (lit brandName)
+          pure { id, name, description, price, brandId, categoryId }
+    log $ str sql
+    dbItems <- query sql
+    pure $ map toItem dbItems
 
 findById :: forall r. ItemId -> App r (Maybe Item)
 findById (ItemId itemId) =
   hoistSelda do
-      let
-        str = generateSQLStringFromQuery
-      let
-        sql =
-          selectFrom items \{ id, name, description, price, brandId, categoryId } -> do
-            restrict $ (lit itemId) .== id
-            pure $ { id, name, description, price, brandId, categoryId }
-
-      log $ str sql
-      dbItems <- query sql
-      pure $ map toItem $ head dbItems
+    let
+      str = generateSQLStringFromQuery
+    let
+      sql =
+        selectFrom items \{ id, name, description, price, brandId, categoryId } -> do
+          restrict $ (lit itemId) .== id
+          pure $ { id, name, description, price, brandId, categoryId }
+    log $ str sql
+    dbItems <- query sql
+    pure $ map toItem $ head dbItems
 
 create :: forall r. CreateItem -> App r Unit
 create { id, name, description, price, brandId, categoryId } =
