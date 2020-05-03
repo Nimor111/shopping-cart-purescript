@@ -15,3 +15,4 @@ yarn-error.log*
 /.spago2nix
 result
 .vscode/
+yarn.nix

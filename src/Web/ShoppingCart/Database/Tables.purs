@@ -88,9 +88,10 @@ dropCategories =
     DROP TABLE categories;
 """
 
-items :: Table ( id :: String, name :: String, description :: String, price :: Int, brand :: String, category :: String )
+items :: Table ( id :: String, name :: String, description :: String, price :: Int, brandId :: String, categoryId :: String )
 items = Table { name: "items" }
 
+-- TODO: make price a REAL
 createItems :: PostgreSQL.Connection -> Aff Unit
 createItems =
   execute
@@ -99,13 +100,13 @@ createItems =
     id UUID PRIMARY KEY,
     name TEXT NOT NULL,
     description TEXT NOT NULL,
-    price NUMERIC NOT NULL,
-    brand_id UUID NOT NULL,
-    category_id UUID NOT NULL,
-    CONSTRAINT brand_id_fkey FOREIGN KEY (brand_id)
+    price INTEGER NOT NULL,
+    brandId UUID NOT NULL,
+    categoryId UUID NOT NULL,
+    CONSTRAINT brand_id_fkey FOREIGN KEY (brandId)
       REFERENCES brands (id) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION,
-    CONSTRAINT category_id_fkey FOREIGN KEY (category_id)
+    CONSTRAINT category_id_fkey FOREIGN KEY (categoryId)
       REFERENCES categories (id) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION
   );
@@ -127,11 +128,11 @@ createOrders =
     """
   CREATE TABLE IF NOT EXISTS orders (
     id UUID PRIMARY KEY,
-    payment_id UUID UNIQUE NOT NULL,
-    quantity NUMERIC NOT NULL,
-    user_id UUID NOT NULL,
+    paymentId UUID UNIQUE NOT NULL,
+    quantity INTEGER NOT NULL,
+    userId UUID NOT NULL,
     items JSONB NOT NULL,
-    CONSTRAINT user_id_fkey FOREIGN KEY (user_id)
+    CONSTRAINT user_id_fkey FOREIGN KEY (userId)
       REFERENCES users (id) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION
   );

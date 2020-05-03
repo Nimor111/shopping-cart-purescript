@@ -1,23 +1,26 @@
 module Web.ShoppingCart.Http.Routes.Items where
 
 import Prelude
+
 import Control.Monad.Error.Class (class MonadThrow, throwError)
 import Control.Monad.Except.Trans (ExceptT(..), runExceptT)
 import Control.Monad.Reader.Class (class MonadAsk)
 import Data.Either (Either(..))
+import Data.Maybe (Maybe)
 import Data.Refinery.Core (refine)
 import Data.Traversable (sequence)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import HTTPure ((!@))
+import HTTPure.Method (Method(..))
 import HTTPure.Request (Request) as HTTPure
 import HTTPure.Response (Response, notFound, ok') as HTTPure
 import Simple.JSON as JSON
 import Web.ShoppingCart.App (AppError)
 import Web.ShoppingCart.Context (Context)
 import Web.ShoppingCart.Domain.Item (Item)
-import Web.ShoppingCart.Domain.RefinedPred (NamePred(..), nameToDomain)
+import Web.ShoppingCart.Domain.RefinedPred (NamePred(..), UUIDPred(..), nameToDomain, uuidToDomain)
 import Web.ShoppingCart.Error (stringRefineError)
 import Web.ShoppingCart.Http.Routes.Headers (responseHeaders)
 import Web.ShoppingCart.Services.Items (Items)
@@ -30,13 +33,39 @@ itemsRouter ::
   Items m ->
   HTTPure.Request ->
   m HTTPure.Response
-itemsRouter items req@{ path: [] } = do
+itemsRouter items req@{ path: [], method: Get } = do
   res <- getItemsByBrandName items req
   case res of
     Left err -> throwError err
     Right is -> HTTPure.ok' responseHeaders (JSON.writeJSON is)
 
+itemsRouter items req@{ path: [itemId], method: Get } = do
+  res <- getItemById items itemId
+  case res of
+    Left err -> throwError err
+    Right item -> HTTPure.ok' responseHeaders (JSON.writeJSON item)
+
 itemsRouter _ _ = HTTPure.notFound
+
+getItemById ::
+  forall r m.
+  MonadAff m =>
+  MonadAsk Context m =>
+  MonadThrow (AppError r) m =>
+  Items m ->
+  String ->
+  m (Either (AppError r) (Maybe Item))
+getItemById items itemId =
+  runExceptT
+    $ do
+        refinedItemId <- ExceptT $ pure $ mapRefinedToEither itemId
+        liftEffect $ log ("Fetching item with id..." <> itemId)
+        ExceptT $ sequence $ Right $ items.findById (uuidToDomain refinedItemId)
+  where
+  mapRefinedToEither :: String -> Either (AppError r) UUIDPred
+  mapRefinedToEither id = case refine id of
+    Left err -> Left $ stringRefineError err
+    Right v -> Right $ UUIDPred v
 
 getItemsByBrandName ::
   forall r m.

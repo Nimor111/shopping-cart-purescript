@@ -38,12 +38,12 @@ refineMaybe maybeValue = case maybeValue of
     Left err -> Left err
     Right v1 -> Right $ Just v1
 
-mapMaybeToError :: forall p. Either (Error String) (Maybe (Refined p String)) -> Either (NonEmptyList ForeignError) (Maybe (Refined p String))
+mapMaybeToError :: forall p a. Show a => Either (Error a) (Maybe (Refined p a)) -> Either (NonEmptyList ForeignError) (Maybe (Refined p a))
 mapMaybeToError refined = case refined of
   Right v -> Right v
-  Left err -> Left $ NonEmptyList $ (ForeignError $ show err.evalTree) :| singleton (ForeignError err.value)
+  Left err -> Left $ NonEmptyList $ (ForeignError $ show err.evalTree) :| singleton (ForeignError $ show err.value)
 
-mapToError :: forall p. Either (Error String) (Refined p String) -> Either (NonEmptyList ForeignError) (Refined p String)
+mapToError :: forall p a. Show a => Either (Error a) (Refined p a) -> Either (NonEmptyList ForeignError) (Refined p a)
 mapToError refined = case refined of
   Right v -> Right v
-  Left err -> Left $ NonEmptyList $ (ForeignError $ show err.evalTree) :| singleton (ForeignError err.value)
+  Left err -> Left $ NonEmptyList $ (ForeignError $ show err.evalTree) :| singleton (ForeignError $ show err.value)

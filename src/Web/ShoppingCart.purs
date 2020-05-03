@@ -1,6 +1,7 @@
 module Web.ShoppingCart where
 
 import Prelude
+
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
 import Database.PostgreSQL as PostgreSQL

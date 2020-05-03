@@ -3,31 +3,28 @@ module Web.ShoppingCart.Domain.Item
   , ItemId(..)
   , ItemName(..)
   , ItemDescription(..)
+  , RefinedItemDTO(..)
+  , RefinedItemUpdateDTO(..)
   , CreateItem(..)
   , UpdateItem(..)
   , Money(..)
   ) where
 
-import Data.Newtype (class Newtype)
-import Data.Refinery.Core (Refined)
+import Prelude
+import Control.Monad.Except.Trans (except)
+import Data.Either (Either(..))
+import Data.Maybe (Maybe)
+import Data.Newtype (class Newtype, unwrap)
+import Data.Refinery.Core (Refined, refine, unrefine)
 import Data.Refinery.Predicate.Numeric (Pos)
 import Data.Show (class Show)
+import Foreign (readUndefined)
+import Simple.JSON (class ReadForeign, class WriteForeign, read, writeImpl)
 import Simple.JSON as JSON
-import Web.ShoppingCart.Domain.Brand (Brand, BrandId)
-import Web.ShoppingCart.Domain.Category (Category, CategoryId)
-import Web.ShoppingCart.Domain.Refined (NonEmptyString, ValidUUID)
-
-newtype ItemUUIDPred
-  = ItemUUIDPred (Refined ValidUUID String)
-
-newtype MoneyPred
-  = MoneyPred (Refined Pos Number)
-
-newtype ItemNamePred
-  = ItemNamePred (Refined NonEmptyString String)
-
-newtype ItemDescriptionPred
-  = ItemDescriptionPred (Refined NonEmptyString String)
+import Web.ShoppingCart.Domain.Brand (Brand, BrandId(..))
+import Web.ShoppingCart.Domain.Category (Category, CategoryId(..))
+import Web.ShoppingCart.Domain.Refined (NonEmptyString, ValidUUID, mapMaybeToError, mapToError, refineMaybe)
+import Web.ShoppingCart.Domain.RefinedPred (NamePred(..), PositiveNumberPred(..), UUIDPred(..))
 
 newtype ItemId
   = ItemId String
@@ -39,9 +36,65 @@ newtype ItemDescription
   = ItemDescription String
 
 newtype Money
-  = Money Number
+  = Money Int
 
 derive newtype instance showMoney :: Show Money
+
+type ItemDTO
+  = { id :: Maybe String
+    , name :: String
+    , description :: String
+    , price :: Int
+    , brandId :: String
+    , categoryId :: String
+    }
+
+type UpdateItemDTO
+  = { id :: String
+    , price :: Int
+    }
+
+data RefinedItemDTO
+  = RefinedItemDTO (Maybe UUIDPred) NamePred NamePred PositiveNumberPred NamePred NamePred
+
+instance writeForeignRefinedItem :: WriteForeign RefinedItemDTO where
+  writeImpl (RefinedItemDTO uuid name description price brandId categoryId) =
+    writeImpl
+      { id: map (\id -> unrefine $ unwrap id) uuid
+      , name: unrefine $ unwrap name
+      , description: unrefine $ unwrap description
+      , price: unrefine $ unwrap price
+      , brandId: unrefine $ unwrap brandId
+      , categoryId: unrefine $ unwrap categoryId
+      }
+
+instance readForeignRefinedItem :: ReadForeign RefinedItemDTO where
+  readImpl val = do
+    (r :: ItemDTO) <- except $ read val
+    refinedId <- except $ mapMaybeToError $ refineMaybe r.id
+    refinedName <- except $ mapToError $ refine r.name
+    refinedDescription <- except $ mapToError $ refine r.description
+    refinedPrice <- except $ mapToError $ refine r.price
+    refinedBrandId <- except $ mapToError $ refine r.brandId
+    refinedCategoryId <- except $ mapToError $ refine r.categoryId
+    except $ Right $ RefinedItemDTO (map UUIDPred refinedId) (NamePred refinedName) (NamePred refinedDescription) (PositiveNumberPred refinedPrice) (NamePred refinedBrandId) (NamePred refinedCategoryId)
+
+data RefinedItemUpdateDTO
+  = RefinedItemUpdateDTO UUIDPred PositiveNumberPred
+
+instance writeForeignRefinedUpdateItem :: WriteForeign RefinedItemUpdateDTO where
+  writeImpl (RefinedItemUpdateDTO uuid price) =
+    writeImpl
+      { id: unrefine $ unwrap uuid
+      , price: unrefine $ unwrap price
+      }
+
+instance readForeignRefinedUpdateItem :: ReadForeign RefinedItemUpdateDTO where
+  readImpl val = do
+    (r :: UpdateItemDTO) <- except $ read val
+    refinedId <- except $ mapToError $ refine r.id
+    refinedPrice <- except $ mapToError $ refine r.price
+    except $ Right $ RefinedItemUpdateDTO (UUIDPred refinedId) (PositiveNumberPred refinedPrice)
 
 derive instance newtypeItemId :: Newtype ItemId _
 
@@ -68,23 +121,24 @@ derive newtype instance readForeignMoney :: JSON.ReadForeign Money
 derive newtype instance writeForeignMoney :: JSON.WriteForeign Money
 
 type Item
-  = { itemId :: ItemId
-    , itemName :: ItemName
-    , itemDescription :: ItemDescription
-    , itemPrice :: Money
-    , itemBrand :: Brand
-    , itemCategory :: Category
+  = { id :: ItemId
+    , name :: ItemName
+    , description :: ItemDescription
+    , price :: Money
+    , brandId :: BrandId
+    , categoryId :: CategoryId
     }
 
 type CreateItem
-  = { createItemName :: ItemName
-    , createItemDescription :: ItemDescription
-    , createItemPrice :: Money
-    , createItemBrandId :: BrandId
-    , createItemCategoryId :: CategoryId
+  = { id :: ItemId
+    , name :: ItemName
+    , description :: ItemDescription
+    , price :: Money
+    , brandId :: BrandId
+    , categoryId :: CategoryId
     }
 
 type UpdateItem
-  = { updateItemId :: ItemId
-    , updateItemPrice :: Money
+  = { id :: ItemId
+    , price :: Money
     }

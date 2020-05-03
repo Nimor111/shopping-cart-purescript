@@ -145,6 +145,6 @@ handle =
     , loginError: \_ -> forbidden
     , jwtTokenMissingError: \_ -> badRequest ("[ERROR]: Jwt token missing in request")
     , userNameInUseError: \s -> conflict ("[ERROR]: User name in use " <> show s)
-    , stringRefineError: \s -> badRequest ("[REFINE-ERROR] value" <> show s.value <> "should be: " <> show s.evalTree)
+    , stringRefineError: \s -> badRequest ("[REFINE-ERROR] value " <> show s.value <> " should be: " <> show s.evalTree)
     }
     (\_ -> internalServerError "[ERROR]: Unknown")
