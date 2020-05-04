@@ -4,8 +4,12 @@ module Web.ShoppingCart.Server
   ) where
 
 import Prelude
+import Control.Bind ((>=>))
 import Control.Monad.Error.Class (class MonadError, class MonadThrow)
+import Control.Monad.Logger.Class (class MonadLogger)
+import Control.Monad.Logger.Trans (runLoggerT)
 import Control.Monad.Reader.Class (class MonadAsk)
+import Data.Log.Formatter.Pretty (prettyFormatter)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class.Console as Console
 import HTTPure (ServerM, serve) as HTTPure
@@ -43,6 +47,7 @@ appMiddleware ctx handler request = runApp ctx (handler request) >>= handleReque
 appRoutes ::
   forall r m.
   MonadAff m =>
+  MonadLogger m =>
   MonadAsk Context m =>
   MonadError (AppError r) m =>
   Services m ->

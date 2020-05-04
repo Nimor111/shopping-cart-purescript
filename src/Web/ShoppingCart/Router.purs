@@ -10,6 +10,7 @@ module Web.ShoppingCart.Router
 import Prelude
 import Control.Monad.Error.Class (class MonadError, class MonadThrow)
 import Control.Monad.Except (throwError)
+import Control.Monad.Logger.Class (class MonadLogger)
 import Control.Monad.Reader (class MonadAsk, asks)
 import Data.Array as Array
 import Data.Foldable (find) as Foldable
@@ -46,6 +47,7 @@ route = Route
 router ::
   ∀ r m.
   MonadAff m =>
+  MonadLogger m =>
   MonadAsk Context m =>
   MonadThrow (AppError r) m =>
   Array (Route m) ->

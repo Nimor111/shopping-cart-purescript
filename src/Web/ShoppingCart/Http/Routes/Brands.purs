@@ -4,7 +4,9 @@ module Web.ShoppingCart.Http.Routes.Brands
 
 import Prelude
 import Control.Monad.Error.Class (class MonadThrow)
+import Control.Monad.Logger.Class (class MonadLogger, debug, info)
 import Control.Monad.Reader.Class (class MonadAsk)
+import Data.Map.Internal (empty)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
@@ -22,6 +24,7 @@ import Web.ShoppingCart.Services.Brands (Brands)
 brandsRouter ::
   forall r m.
   MonadAff m =>
+  MonadLogger m =>
   MonadAsk Context m =>
   MonadThrow (AppError r) m =>
   Brands m ->
@@ -34,12 +37,13 @@ brandsRouter _ _ = HTTPure.notFound
 getBrands ::
   forall r m.
   MonadAff m =>
+  MonadLogger m =>
   MonadAsk Context m =>
   MonadThrow (AppError r) m =>
   Brands m ->
   HTTPure.Request ->
   m HTTPure.Response
 getBrands b req = do
-  liftEffect $ log "Fetching all brands..."
+  info empty "Fetching all brands..."
   brands <- b.findAll
   HTTPure.ok' responseHeaders (JSON.writeJSON brands)

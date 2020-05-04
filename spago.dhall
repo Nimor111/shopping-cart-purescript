@@ -17,7 +17,8 @@ You can edit this file as you like.
     "simple-json",
     "simple-jwt",
     "checked-exceptions",
-    "refinery"
+    "refinery",
+    "monad-logger"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]
