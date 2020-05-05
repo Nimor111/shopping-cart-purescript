@@ -44,6 +44,6 @@ getBrands ::
   HTTPure.Request ->
   m HTTPure.Response
 getBrands b req = do
-  info empty "Fetching all brands..."
+  info empty "Fetching all brands"
   brands <- b.findAll
   HTTPure.ok' responseHeaders (JSON.writeJSON brands)

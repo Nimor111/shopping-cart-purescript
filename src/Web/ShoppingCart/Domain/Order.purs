@@ -7,6 +7,7 @@ module Web.ShoppingCart.Domain.Order
 
 import Data.Map (Map)
 import Data.Newtype (class Newtype)
+import Data.Show (class Show)
 import Simple.JSON as JSON
 import Web.ShoppingCart.Domain.Item (ItemId(..), Money(..))
 import Web.ShoppingCart.Domain.ShoppingCart (Quantity(..))
@@ -15,8 +16,12 @@ import Web.ShoppingCart.Domain.User (User, UserId(..))
 newtype OrderId
   = OrderId String
 
+derive newtype instance showOrderId :: Show OrderId
+
 newtype PaymentId
   = PaymentId String
+
+derive newtype instance showPaymentId :: Show PaymentId
 
 derive instance newtypeOrderId :: Newtype OrderId _
 

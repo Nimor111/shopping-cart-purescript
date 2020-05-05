@@ -40,6 +40,12 @@ newtype Money
 
 derive newtype instance showMoney :: Show Money
 
+derive newtype instance showItemId :: Show ItemId
+
+derive newtype instance showItemName :: Show ItemName
+
+derive newtype instance showItemDescription :: Show ItemDescription
+
 type ItemDTO
   = { id :: Maybe String
     , name :: String

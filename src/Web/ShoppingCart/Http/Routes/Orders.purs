@@ -2,7 +2,9 @@ module Web.ShoppingCart.Http.Routes.Orders where
 
 import Prelude
 import Control.Monad.Error.Class (class MonadThrow, throwError)
+import Control.Monad.Logger.Class (class MonadLogger, info)
 import Control.Monad.Reader.Class (class MonadAsk)
+import Data.Map.Internal (empty)
 import Data.Newtype (un, unwrap, wrap)
 import Effect.Aff.Class (class MonadAff)
 import HTTPure ((!@), (!?))
@@ -21,6 +23,7 @@ import Web.ShoppingCart.Services.Orders (Orders)
 ordersRouter ::
   forall r m.
   MonadAff m =>
+  MonadLogger m =>
   MonadAsk Context m =>
   MonadThrow (AppError r) m =>
   Orders m ->
@@ -35,6 +38,7 @@ ordersRouter _ _ = HTTPure.notFound
 getOrder ::
   forall r m.
   MonadAff m =>
+  MonadLogger m =>
   MonadAsk Context m =>
   MonadThrow (AppError r) m =>
   UserId ->
@@ -43,12 +47,14 @@ getOrder ::
   HTTPure.Request ->
   m HTTPure.Response
 getOrder userId orderId orders req = do
+  info empty $ "Fetching order with id " <> show orderId <> "for user " <> show userId
   order <- orders.get userId orderId
   HTTPure.ok' responseHeaders (JSON.writeJSON order)
 
 getOrdersByUser ::
   forall r m.
   MonadAff m =>
+  MonadLogger m =>
   MonadAsk Context m =>
   MonadThrow (AppError r) m =>
   UserId ->
@@ -56,5 +62,6 @@ getOrdersByUser ::
   HTTPure.Request ->
   m HTTPure.Response
 getOrdersByUser userId orders req = do
+  info empty $ "Fetching orders for user " <> show userId
   userOrders <- orders.findBy userId
   HTTPure.ok' responseHeaders (JSON.writeJSON userOrders)

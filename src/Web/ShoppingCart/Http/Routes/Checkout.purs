@@ -3,10 +3,13 @@ module Web.ShoppingCart.Http.Routes.Checkout where
 import Prelude
 import Control.Monad.Error.Class (class MonadError, class MonadThrow, throwError)
 import Control.Monad.Except.Trans (ExceptT(..), runExceptT)
+import Control.Monad.Logger.Class (class MonadLogger, info)
 import Control.Monad.Reader.Class (class MonadAsk)
 import Data.Either (Either(..))
 import Data.List.Types (NonEmptyList(..))
+import Data.Map.Internal (empty)
 import Data.Newtype (un, unwrap, wrap)
+import Data.Show (show)
 import Data.Traversable (sequence)
 import Data.Variant (SProxy(..), Variant, inj)
 import Effect.Aff.Class (class MonadAff)
@@ -37,6 +40,7 @@ type HandleCheckoutError r
 checkoutRouter ::
   forall r m.
   MonadAff m =>
+  MonadLogger m =>
   MonadAsk Context m =>
   MonadError (HandleCheckoutError r) m =>
   Background m =>
@@ -46,7 +50,7 @@ checkoutRouter ::
   HTTPure.Request ->
   m HTTPure.Response
 checkoutRouter payments cart orders req@{ path, method: Post, body } = do
-  res <- handleCheckout payments cart orders (wrap $ path !@ 0) body req
+  res <- handleCheckout payments cart orders (wrap $ path !@ 0) body
   case res of
     Left err -> throwError err
     Right v -> HTTPure.created
@@ -56,6 +60,7 @@ checkoutRouter _ _ _ _ = HTTPure.notFound
 handleCheckout ::
   forall r m.
   MonadAff m =>
+  MonadLogger m =>
   MonadAsk Context m =>
   MonadError (HandleCheckoutError r) m =>
   Background m =>
@@ -64,11 +69,11 @@ handleCheckout ::
   Orders m ->
   UserId ->
   String ->
-  HTTPure.Request ->
   m (Either (HandleCheckoutError r) OrderId)
-handleCheckout payments cart orders userId body req =
+handleCheckout payments cart orders userId body =
   runExceptT
     $ do
+        info empty $ "Checking out order for user " <> show userId
         card <- ExceptT $ pure $ mapJsonError body
         ExceptT $ sequence $ Right (checkout payments cart orders userId card)
   where

@@ -3,9 +3,12 @@ module Web.ShoppingCart.Http.Routes.Items where
 import Prelude
 import Control.Monad.Error.Class (class MonadThrow, throwError)
 import Control.Monad.Except.Trans (ExceptT(..), runExceptT)
+import Control.Monad.Logger.Class (class MonadLogger, info)
 import Control.Monad.Reader.Class (class MonadAsk)
 import Data.Either (Either(..))
+import Data.Map.Internal (empty)
 import Data.Maybe (Maybe)
+import Data.Newtype (unwrap)
 import Data.Refinery.Core (refine)
 import Data.Traversable (sequence)
 import Effect.Aff.Class (class MonadAff)
@@ -18,6 +21,7 @@ import HTTPure.Response (Response, notFound, ok') as HTTPure
 import Simple.JSON as JSON
 import Web.ShoppingCart.App (AppError)
 import Web.ShoppingCart.Context (Context)
+import Web.ShoppingCart.Domain.Brand (BrandName(..))
 import Web.ShoppingCart.Domain.Item (Item)
 import Web.ShoppingCart.Domain.RefinedPred (NamePred(..), UUIDPred(..), nameToDomain, uuidToDomain)
 import Web.ShoppingCart.Error (stringRefineError)
@@ -27,6 +31,7 @@ import Web.ShoppingCart.Services.Items (Items)
 itemsRouter ::
   forall r m.
   MonadAff m =>
+  MonadLogger m =>
   MonadAsk Context m =>
   MonadThrow (AppError r) m =>
   Items m ->
@@ -49,6 +54,7 @@ itemsRouter _ _ = HTTPure.notFound
 getItemById ::
   forall r m.
   MonadAff m =>
+  MonadLogger m =>
   MonadAsk Context m =>
   MonadThrow (AppError r) m =>
   Items m ->
@@ -58,7 +64,7 @@ getItemById items itemId =
   runExceptT
     $ do
         refinedItemId <- ExceptT $ pure $ mapRefinedToEither itemId
-        liftEffect $ log ("Fetching item with id..." <> itemId)
+        info empty $ "Fetching item with id " <> itemId
         ExceptT $ sequence $ Right $ items.findById (uuidToDomain refinedItemId)
   where
   mapRefinedToEither :: String -> Either (AppError r) UUIDPred
@@ -69,6 +75,7 @@ getItemById items itemId =
 getItemsByBrandName ::
   forall r m.
   MonadAff m =>
+  MonadLogger m =>
   MonadAsk Context m =>
   MonadThrow (AppError r) m =>
   Items m ->
@@ -77,8 +84,8 @@ getItemsByBrandName ::
 getItemsByBrandName i req =
   runExceptT
     $ do
-        liftEffect $ log "Fetching all items by brand name..."
         refinedBrandName <- ExceptT $ pure $ mapRefinedToEither (req.query !@ "brand")
+        info empty $ "Fetching all items for brand " <> show (nameToDomain refinedBrandName :: BrandName)
         ExceptT $ sequence $ Right $ i.findBy (nameToDomain refinedBrandName)
   where
   mapRefinedToEither :: String -> Either (AppError r) NamePred

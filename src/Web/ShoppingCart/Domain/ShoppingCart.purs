@@ -8,19 +8,30 @@ module Web.ShoppingCart.Domain.ShoppingCart
   ) where
 
 import Data.Newtype (class Newtype)
+import Data.Show (class Show)
 import Simple.JSON as JSON
 import Web.ShoppingCart.Domain.Item (Item, ItemId, Money(..))
 
 newtype Quantity
-  = Quantity { unQuantity :: Int }
+  = Quantity Int
 
 newtype Cart
   = Cart (Array CartItemId)
 
 newtype CartId
-  = CartId { unCartId :: String }
+  = CartId String
 
 derive instance newtypeCart :: Newtype Cart _
+
+derive instance newtypeQuantity :: Newtype Quantity _
+
+derive instance newtypeCartId :: Newtype CartId _
+
+derive newtype instance showCart :: Show Cart
+
+derive newtype instance showQuantity :: Show Quantity
+
+derive newtype instance showCartId :: Show CartId
 
 derive newtype instance readForeignQuantity :: JSON.ReadForeign Quantity
 
