@@ -9,6 +9,7 @@ import Prelude
 import Control.Monad.Except (runExcept)
 import Control.Monad.Except.Trans (except)
 import Data.Argonaut.Core (Json, jsonEmptyObject)
+import Data.Argonaut.Decode.Combinators ((.:?), (.:))
 import Data.Argonaut.Decode.Class (class DecodeJson, decodeJson)
 import Data.Argonaut.Encode.Class (class EncodeJson, encodeJson)
 import Data.Argonaut.Encode.Combinators ((:=?), (~>), (:=), (~>?))
@@ -34,6 +35,13 @@ type CategoryDTO
     , name :: String
     }
 
+decodeCategoryDTO :: Json -> Either String CategoryDTO
+decodeCategoryDTO json = do
+  obj <- decodeJson json
+  id <- obj .:? "id"
+  name <- obj .: "name"
+  pure $ { id, name }
+
 data RefinedCategoryDTO
   = RefinedCategoryDTO (Maybe UUIDPred) NamePred
 
@@ -48,7 +56,7 @@ instance decodeJsonRefinedCategory :: DecodeJson RefinedCategoryDTO where
   decodeJson json =
     runExcept
       $ do
-          (r :: CategoryDTO) <- except $ decodeJson json
+          r <- except $ decodeCategoryDTO json
           refinedId <- except $ mapToError $ refineMaybe r.id
           refinedName <- except $ mapToError $ refineIdentity r.name
           except $ Right $ RefinedCategoryDTO (map UUIDPred refinedId) (NamePred $ unwrap refinedName)

@@ -10,6 +10,7 @@ import Control.Monad.Except (runExcept)
 import Control.Monad.Except.Trans (except)
 import Data.Argonaut.Core (Json, jsonEmptyObject)
 import Data.Argonaut.Decode.Class (class DecodeJson, decodeJson)
+import Data.Argonaut.Decode.Combinators ((.:?), (.:))
 import Data.Argonaut.Encode.Class (class EncodeJson, encodeJson)
 import Data.Argonaut.Encode.Combinators ((:=?), (~>), (:=), (~>?))
 import Data.Either (Either(..))
@@ -43,6 +44,13 @@ type BrandDTO
     , name :: String
     }
 
+decodeBrandDTO :: Json -> Either String BrandDTO
+decodeBrandDTO json = do
+  obj <- decodeJson json
+  id <- obj .:? "id"
+  name <- obj .: "name"
+  pure $ { id, name }
+
 data RefinedBrandDTO
   = RefinedBrandDTO (Maybe UUIDPred) NamePred
 
@@ -57,7 +65,7 @@ instance decodeJsonRefinedBrand :: DecodeJson RefinedBrandDTO where
   decodeJson json =
     runExcept
       $ do
-          (r :: BrandDTO) <- except $ decodeJson json
+          r <- except $ decodeBrandDTO json
           refinedId <- except $ mapToError $ refineMaybe r.id
           refinedName <- except $ mapToError $ refineIdentity r.name
           except $ Right $ RefinedBrandDTO (map UUIDPred refinedId) (NamePred $ unwrap refinedName)
