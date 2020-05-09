@@ -11,7 +11,6 @@ module Web.ShoppingCart.Domain.Item
   ) where
 
 import Prelude
-
 import Control.Monad.Except (runExcept)
 import Control.Monad.Except.Trans (except)
 import Data.Argonaut.Core (Json, jsonEmptyObject)
@@ -79,17 +78,21 @@ instance encodeJsonRefinedItem :: EncodeJson RefinedItemDTO where
       ~> "id"
       :=? map (\id -> unrefine $ unwrap id) uuid
       ~>? "description"
-      := (unrefine
-      $ unwrap description)
+      := ( unrefine
+            $ unwrap description
+        )
       ~> "price"
-      := (unrefine
-      $ unwrap price)
+      := ( unrefine
+            $ unwrap price
+        )
       ~> "brandId"
-      := (unrefine
-      $ unwrap brandId)
+      := ( unrefine
+            $ unwrap brandId
+        )
       ~> "categoryId"
-      := (unrefine
-      $ unwrap categoryId)
+      := ( unrefine
+            $ unwrap categoryId
+        )
       ~> jsonEmptyObject
 
 instance decodeJsonRefinedItem :: DecodeJson RefinedItemDTO where

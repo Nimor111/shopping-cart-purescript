@@ -1,13 +1,12 @@
 module Web.ShoppingCart.Domain.Refined
-    ( refineMaybe
-    , refineIdentity
-    , mapToError
-    , ValidUUID (..)
-    , NonEmptyString (..)
-    ) where
+  ( refineMaybe
+  , refineIdentity
+  , mapToError
+  , ValidUUID(..)
+  , NonEmptyString(..)
+  ) where
 
 import Prelude
-
 import Data.Either (Either(..))
 import Data.HeytingAlgebra (not)
 import Data.Identity (Identity(..))
@@ -15,7 +14,6 @@ import Data.Maybe (Maybe(..))
 import Data.Refinery.Core (class Validate, Error, EvalTree(..), Refined, refine)
 import Data.String.Common (null)
 import Data.UUID (parseUUID)
-
 
 data NonEmptyString
 

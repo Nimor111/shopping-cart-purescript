@@ -1,7 +1,6 @@
 module Web.ShoppingCart.Http.Routes.Admin.Brands where
 
 import Prelude
-
 import Control.Monad.Error.Class (class MonadError, class MonadThrow, throwError)
 import Control.Monad.Except (Except)
 import Control.Monad.Except.Trans (ExceptT(..), runExceptT)

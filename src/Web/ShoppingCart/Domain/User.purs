@@ -14,7 +14,6 @@ import Data.Argonaut.Core (Json, jsonEmptyObject)
 import Data.Argonaut.Decode.Class (class DecodeJson, decodeJson)
 import Data.Argonaut.Encode.Class (class EncodeJson, encodeJson)
 import Data.Argonaut.Encode.Combinators ((:=?), (~>), (:=), (~>?))
-
 import Data.Newtype (class Newtype)
 import Data.Show (class Show)
 

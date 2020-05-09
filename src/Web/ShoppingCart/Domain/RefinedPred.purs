@@ -8,7 +8,6 @@ module Web.ShoppingCart.Domain.RefinedPred
   ) where
 
 import Prelude
-
 import Control.Monad.Except (runExcept)
 import Control.Monad.Except.Trans (except)
 import Data.Argonaut.Decode.Class (class DecodeJson, decodeJson)
@@ -30,11 +29,11 @@ newtype NamePred
 derive instance newtypeNamePred :: Newtype NamePred _
 
 instance decodeJsonNamePred :: DecodeJson NamePred where
-    decodeJson json = case decodeJson json of
-      Left err -> Left $ "JSON decode error for value: " <> show err
-      Right v1 -> case refine v1 of
-          Left err -> Left $ "Refine error. Value " <> show err.value <> " should be: " <> show err.evalTree
-          Right v2 -> Right (NamePred v2)
+  decodeJson json = case decodeJson json of
+    Left err -> Left $ "JSON decode error for value: " <> show err
+    Right v1 -> case refine v1 of
+      Left err -> Left $ "Refine error. Value " <> show err.value <> " should be: " <> show err.evalTree
+      Right v2 -> Right (NamePred v2)
 
 instance encodeJsonNamePred :: EncodeJson NamePred where
   encodeJson (NamePred ref) = encodeJson (unrefine ref)
@@ -54,11 +53,11 @@ newtype UUIDPred
 derive instance newtypeUUIDPred :: Newtype UUIDPred _
 
 instance decodeJsonUUIDPred :: DecodeJson UUIDPred where
-    decodeJson json = case decodeJson json of
-      Left err -> Left $ "JSON decode error for value: " <> show err
-      Right v1 -> case refine v1 of
-          Left err -> Left $ "Refine error. Value " <> show err.value <> " should be: " <> show err.evalTree
-          Right v2 -> Right (UUIDPred v2)
+  decodeJson json = case decodeJson json of
+    Left err -> Left $ "JSON decode error for value: " <> show err
+    Right v1 -> case refine v1 of
+      Left err -> Left $ "Refine error. Value " <> show err.value <> " should be: " <> show err.evalTree
+      Right v2 -> Right (UUIDPred v2)
 
 instance encodeJsonUUIDPred :: EncodeJson UUIDPred where
   encodeJson (UUIDPred ref) = encodeJson (unrefine ref)
@@ -69,11 +68,11 @@ newtype PositiveNumberPred
 derive instance newtypePositiveNumberPred :: Newtype PositiveNumberPred _
 
 instance decodeJsonPositiveNumberPred :: DecodeJson PositiveNumberPred where
-    decodeJson json = case decodeJson json of
-      Left err -> Left $ "JSON decode error for value: " <> show err
-      Right v1 -> case refine v1 of
-          Left err -> Left $ "Refine error. Value " <> show err.value <> " should be: " <> show err.evalTree
-          Right v2 -> Right (PositiveNumberPred v2)
+  decodeJson json = case decodeJson json of
+    Left err -> Left $ "JSON decode error for value: " <> show err
+    Right v1 -> case refine v1 of
+      Left err -> Left $ "Refine error. Value " <> show err.value <> " should be: " <> show err.evalTree
+      Right v2 -> Right (PositiveNumberPred v2)
 
 instance encodeJsonPositiveNumberPred :: EncodeJson PositiveNumberPred where
   encodeJson (PositiveNumberPred ref) = encodeJson (unrefine ref)

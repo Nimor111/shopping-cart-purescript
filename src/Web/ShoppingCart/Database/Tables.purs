@@ -9,7 +9,6 @@ module Web.ShoppingCart.Database.Tables
   ) where
 
 import Prelude
-
 import Control.Monad.Error.Class (class MonadThrow)
 import Control.Monad.Except (ExceptT, throwError)
 import Control.Monad.Reader (class MonadAsk, ReaderT)

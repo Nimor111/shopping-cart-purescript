@@ -5,7 +5,6 @@ module Web.ShoppingCart.App
   ) where
 
 import Prelude
-
 import Control.Bind ((>=>))
 import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Logger.Trans (LoggerT(..), runLoggerT)
@@ -17,7 +16,6 @@ import Effect.Aff (Aff)
 import Effect.Class.Console as Console
 import Web.ShoppingCart.Context (Context)
 import Web.ShoppingCart.Error (RequestError, type (+))
-
 
 type AppError r
   = Variant (RequestError + r)
