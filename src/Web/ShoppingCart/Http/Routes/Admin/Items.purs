@@ -1,9 +1,12 @@
 module Web.ShoppingCart.Http.Routes.Admin.Items where
 
 import Prelude
+
 import Control.Monad.Error.Class (class MonadThrow, throwError)
 import Control.Monad.Except.Trans (ExceptT(..), runExceptT)
 import Control.Monad.Reader.Class (class MonadAsk)
+import Data.Argonaut.Decode.Class (decodeJson)
+import Data.Argonaut.Parser (jsonParser)
 import Data.Either (Either(..))
 import Data.Newtype (wrap)
 import Data.Traversable (sequence)
@@ -15,7 +18,6 @@ import Effect.Class (liftEffect)
 import HTTPure.Method (Method(..))
 import HTTPure.Request (Request) as HTTPure
 import HTTPure.Response (Response, created, notFound, ok) as HTTPure
-import Simple.JSON as JSON
 import Web.ShoppingCart.Context (Context)
 import Web.ShoppingCart.Domain.Item (CreateItem, RefinedItemDTO(..), RefinedItemUpdateDTO(..), UpdateItem)
 import Web.ShoppingCart.Domain.RefinedPred (nameToDomain, numToDomain, uuidToDomain)
@@ -59,7 +61,7 @@ createItem items body =
         ExceptT $ sequence $ Right $ items.create { id: (wrap $ toString uuid), name: nameToDomain itemName, description: nameToDomain itemDescription, price: numToDomain itemPrice, brandId: nameToDomain itemBrand, categoryId: nameToDomain itemCategory }
   where
   mapJsonError :: String -> Either (Variant (JsonDecodeError + r)) RefinedItemDTO
-  mapJsonError b = case JSON.readJSON b of
+  mapJsonError b = case decodeJson =<< jsonParser b of
     Left errors -> Left $ jsonDecodeError errors
     Right v -> Right v
 
@@ -77,6 +79,6 @@ updateItem items body =
         ExceptT $ sequence $ Right $ items.update { id: uuidToDomain itemId, price: numToDomain itemPrice }
   where
   mapJsonError :: String -> Either (Variant (JsonDecodeError + r)) RefinedItemUpdateDTO
-  mapJsonError b = case JSON.readJSON b of
+  mapJsonError b = case decodeJson =<< jsonParser b of
     Left errors -> Left $ jsonDecodeError errors
     Right v -> Right v

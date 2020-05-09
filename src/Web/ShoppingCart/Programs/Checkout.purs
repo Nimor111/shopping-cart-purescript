@@ -3,7 +3,9 @@ module Web.ShoppingCart.Programs.Checkout
   ) where
 
 import Prelude
+
 import Control.Monad.Error.Class (class MonadError, try, catchError, throwError)
+import Data.Newtype (unwrap)
 import Data.Time.Duration (Milliseconds(..))
 import Data.Variant (Variant)
 import Effect.Aff.Class (class MonadAff)
@@ -43,12 +45,12 @@ checkout ::
 checkout paymentsClient shoppingCartClient ordersClient userId card = do
   cart <- shoppingCartClient.get userId
   paymentId <- processPayment paymentsClient (payment cart)
-  orderId <- createOrder ordersClient userId paymentId (cart.cartTotalItems) (cart.cartTotal)
+  orderId <- createOrder ordersClient userId paymentId (cart.items) (cart.total)
   void $ try $ shoppingCartClient.delete userId
   pure orderId
   where
   payment :: CartTotal -> Payment
-  payment cart = { paymentUserId: userId, paymentTotal: (cart.cartTotal), paymentCard: card }
+  payment cart = { userId: userId, total: cart.total, card }
 
 createOrder ::
   forall r m.
@@ -93,4 +95,4 @@ processPayment paymentsClient payment = recovering retryPolicy checks action
       `catchError`
         \err -> do
           liftEffect $ log ("Failed to process payment..." <> show payment)
-          throwError $ paymentFailedError payment
+          throwError $ paymentFailedError (unwrap payment.userId) (unwrap payment.total)

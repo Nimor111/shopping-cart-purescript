@@ -6,6 +6,8 @@ import Prelude
 import Control.Monad.Error.Class (class MonadThrow)
 import Control.Monad.Logger.Class (class MonadLogger, debug, info)
 import Control.Monad.Reader.Class (class MonadAsk)
+import Data.Argonaut.Core (stringify)
+import Data.Argonaut.Encode.Class (encodeJson)
 import Data.Map.Internal (empty)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
@@ -13,7 +15,6 @@ import Effect.Class.Console (log)
 import HTTPure.Method (Method(..))
 import HTTPure.Request (Request) as HTTPure
 import HTTPure.Response (Response, notFound, ok') as HTTPure
-import Simple.JSON as JSON
 import Web.ShoppingCart.App (AppError)
 import Web.ShoppingCart.Context (Context)
 import Web.ShoppingCart.Domain.Brand (Brand)
@@ -46,4 +47,4 @@ getBrands ::
 getBrands b req = do
   info empty "Fetching all brands"
   brands <- b.findAll
-  HTTPure.ok' responseHeaders (JSON.writeJSON brands)
+  HTTPure.ok' responseHeaders (stringify $ encodeJson brands)

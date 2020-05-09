@@ -1,16 +1,21 @@
-module Web.ShoppingCart.Domain.Refined where
+module Web.ShoppingCart.Domain.Refined
+    ( refineMaybe
+    , refineIdentity
+    , mapToError
+    , ValidUUID (..)
+    , NonEmptyString (..)
+    ) where
 
 import Prelude
+
 import Data.Either (Either(..))
 import Data.HeytingAlgebra (not)
+import Data.Identity (Identity(..))
 import Data.Maybe (Maybe(..))
-import Data.List.Types (NonEmptyList(..))
-import Data.List (singleton)
-import Data.NonEmpty (NonEmpty(..), (:|))
 import Data.Refinery.Core (class Validate, Error, EvalTree(..), Refined, refine)
-import Foreign (ForeignError(..), readString)
 import Data.String.Common (null)
 import Data.UUID (parseUUID)
+
 
 data NonEmptyString
 
@@ -38,12 +43,12 @@ refineMaybe maybeValue = case maybeValue of
     Left err -> Left err
     Right v1 -> Right $ Just v1
 
-mapMaybeToError :: forall p a. Show a => Either (Error a) (Maybe (Refined p a)) -> Either (NonEmptyList ForeignError) (Maybe (Refined p a))
-mapMaybeToError refined = case refined of
-  Right v -> Right v
-  Left err -> Left $ NonEmptyList $ (ForeignError $ show err.evalTree) :| singleton (ForeignError $ show err.value)
+refineIdentity :: forall p a. Validate p a => a -> Either (Error a) (Identity (Refined p a))
+refineIdentity value = case refine value of
+  Left err -> Left err
+  Right v -> Right $ Identity v
 
-mapToError :: forall p a. Show a => Either (Error a) (Refined p a) -> Either (NonEmptyList ForeignError) (Refined p a)
+mapToError :: forall p a f. Show a => Either (Error a) (f (Refined p a)) -> Either String (f (Refined p a))
 mapToError refined = case refined of
   Right v -> Right v
-  Left err -> Left $ NonEmptyList $ (ForeignError $ show err.evalTree) :| singleton (ForeignError $ show err.value)
+  Left err -> Left $ "Refine error during decoding: value " <> show err.value <> " should be: " <> show err.evalTree

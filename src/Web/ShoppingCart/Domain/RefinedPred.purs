@@ -8,8 +8,12 @@ module Web.ShoppingCart.Domain.RefinedPred
   ) where
 
 import Prelude
+
 import Control.Monad.Except (runExcept)
 import Control.Monad.Except.Trans (except)
+import Data.Argonaut.Decode.Class (class DecodeJson, decodeJson)
+import Data.Argonaut.Encode.Class (class EncodeJson, encodeJson)
+import Data.Argonaut.Parser (jsonParser)
 import Data.Either (Either(..))
 import Data.List (singleton)
 import Data.List.Types (NonEmptyList(..))
@@ -18,8 +22,6 @@ import Data.NonEmpty (NonEmpty(..), (:|))
 import Data.Refinery.Core (class Validate, Refined, refine, unrefine)
 import Data.Refinery.Predicate.Numeric (Pos)
 import Foreign (ForeignError(..), readInt, readNumber, readString)
-import Simple.JSON (class ReadForeign, class WriteForeign, writeImpl)
-import Simple.JSON as JSON
 import Web.ShoppingCart.Domain.Refined (NonEmptyString, ValidUUID)
 
 newtype NamePred
@@ -27,15 +29,15 @@ newtype NamePred
 
 derive instance newtypeNamePred :: Newtype NamePred _
 
-instance readForeignNamePred :: ReadForeign NamePred where
-  readImpl val = case runExcept $ readString val of
-    Left err -> except (Left err)
-    Right v1 -> case refine v1 of
-      Left err -> except $ Left $ NonEmptyList $ (ForeignError $ show err.evalTree) :| singleton (ForeignError err.value)
-      Right v2 -> except $ Right (NamePred v2)
+instance decodeJsonNamePred :: DecodeJson NamePred where
+    decodeJson json = case decodeJson json of
+      Left err -> Left $ "JSON decode error for value: " <> show err
+      Right v1 -> case refine v1 of
+          Left err -> Left $ "Refine error. Value " <> show err.value <> " should be: " <> show err.evalTree
+          Right v2 -> Right (NamePred v2)
 
-instance writeForeignNamePred :: WriteForeign NamePred where
-  writeImpl (NamePred ref) = writeImpl (unrefine ref)
+instance encodeJsonNamePred :: EncodeJson NamePred where
+  encodeJson (NamePred ref) = encodeJson (unrefine ref)
 
 nameToDomain :: forall a. Newtype a String => NamePred -> a
 nameToDomain (NamePred name) = wrap $ unrefine name
@@ -51,27 +53,27 @@ newtype UUIDPred
 
 derive instance newtypeUUIDPred :: Newtype UUIDPred _
 
-instance readForeignUUIDPred :: ReadForeign UUIDPred where
-  readImpl val = case runExcept $ readString val of
-    Left err -> except (Left err)
-    Right v1 -> case refine v1 of
-      Left err -> except $ Left $ NonEmptyList $ (ForeignError $ show err.evalTree) :| singleton (ForeignError err.value)
-      Right v2 -> except $ Right (UUIDPred v2)
+instance decodeJsonUUIDPred :: DecodeJson UUIDPred where
+    decodeJson json = case decodeJson json of
+      Left err -> Left $ "JSON decode error for value: " <> show err
+      Right v1 -> case refine v1 of
+          Left err -> Left $ "Refine error. Value " <> show err.value <> " should be: " <> show err.evalTree
+          Right v2 -> Right (UUIDPred v2)
 
-instance writeForeignUUIDPred :: WriteForeign UUIDPred where
-  writeImpl (UUIDPred ref) = writeImpl (unrefine ref)
+instance encodeJsonUUIDPred :: EncodeJson UUIDPred where
+  encodeJson (UUIDPred ref) = encodeJson (unrefine ref)
 
 newtype PositiveNumberPred
   = PositiveNumberPred (Refined Pos Int)
 
 derive instance newtypePositiveNumberPred :: Newtype PositiveNumberPred _
 
-instance readForeignPositiveNumberPred :: ReadForeign PositiveNumberPred where
-  readImpl val = case runExcept $ readInt val of
-    Left err -> except (Left err)
-    Right v1 -> case refine v1 of
-      Left err -> except $ Left $ NonEmptyList $ (ForeignError $ show err.evalTree) :| singleton (ForeignError $ show err.value)
-      Right v2 -> except $ Right (PositiveNumberPred v2)
+instance decodeJsonPositiveNumberPred :: DecodeJson PositiveNumberPred where
+    decodeJson json = case decodeJson json of
+      Left err -> Left $ "JSON decode error for value: " <> show err
+      Right v1 -> case refine v1 of
+          Left err -> Left $ "Refine error. Value " <> show err.value <> " should be: " <> show err.evalTree
+          Right v2 -> Right (PositiveNumberPred v2)
 
-instance writeForeignPositiveNumberPred :: WriteForeign PositiveNumberPred where
-  writeImpl (PositiveNumberPred ref) = writeImpl (unrefine ref)
+instance encodeJsonPositiveNumberPred :: EncodeJson PositiveNumberPred where
+  encodeJson (PositiveNumberPred ref) = encodeJson (unrefine ref)

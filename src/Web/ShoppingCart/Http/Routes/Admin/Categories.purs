@@ -1,9 +1,12 @@
 module Web.ShoppingCart.Http.Routes.Admin.Categories where
 
 import Prelude
+
 import Control.Monad.Error.Class (class MonadError, class MonadThrow, throwError)
 import Control.Monad.Except.Trans (ExceptT(..), runExceptT)
 import Control.Monad.Reader.Class (class MonadAsk)
+import Data.Argonaut.Decode.Class (decodeJson)
+import Data.Argonaut.Parser (jsonParser)
 import Data.Either (Either(..))
 import Data.Newtype (wrap)
 import Data.Show (show)
@@ -16,7 +19,6 @@ import Effect.Class.Console (log)
 import HTTPure.Method (Method(..))
 import HTTPure.Request (Request) as HTTPure
 import HTTPure.Response (Response, created, notFound, ok') as HTTPure
-import Simple.JSON as JSON
 import Web.ShoppingCart.Context (Context)
 import Web.ShoppingCart.Domain.Category (Category, CategoryName(..), RefinedCategoryDTO(..))
 import Web.ShoppingCart.Domain.RefinedPred (nameToDomain)
@@ -54,6 +56,6 @@ createCategory categories body =
         ExceptT $ sequence $ Right (categories.create $ { id: (wrap $ toString uuid), name: nameToDomain categoryName })
   where
   mapJsonError :: String -> Either (Variant (JsonDecodeError + r)) RefinedCategoryDTO
-  mapJsonError body = case JSON.readJSON body of
+  mapJsonError body = case (decodeJson =<< jsonParser body) of
     Left errors -> Left $ jsonDecodeError errors
     Right v -> Right v

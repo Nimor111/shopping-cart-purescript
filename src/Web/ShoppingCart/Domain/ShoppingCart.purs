@@ -7,9 +7,10 @@ module Web.ShoppingCart.Domain.ShoppingCart
   , CartItemId(..)
   ) where
 
+import Data.Argonaut.Decode.Class (class DecodeJson)
+import Data.Argonaut.Encode.Class (class EncodeJson)
 import Data.Newtype (class Newtype)
 import Data.Show (class Show)
-import Simple.JSON as JSON
 import Web.ShoppingCart.Domain.Item (Item, ItemId, Money(..))
 
 newtype Quantity
@@ -33,17 +34,17 @@ derive newtype instance showQuantity :: Show Quantity
 
 derive newtype instance showCartId :: Show CartId
 
-derive newtype instance readForeignQuantity :: JSON.ReadForeign Quantity
+derive newtype instance decodeJsonQuantity :: DecodeJson Quantity
 
-derive newtype instance writeForeignQuantity :: JSON.WriteForeign Quantity
+derive newtype instance encodeJsonQuantity :: EncodeJson Quantity
 
-derive newtype instance readForeignCartId :: JSON.ReadForeign CartId
+derive newtype instance decodeJsonCartId :: DecodeJson CartId
 
-derive newtype instance writeForeignCartId :: JSON.WriteForeign CartId
+derive newtype instance encodeJsonCartId :: EncodeJson CartId
 
-derive newtype instance readForeignCart :: JSON.ReadForeign Cart
+derive newtype instance decodeJsonCart :: DecodeJson Cart
 
-derive newtype instance writeForeignCart :: JSON.WriteForeign Cart
+derive newtype instance encodeJsonCart :: EncodeJson Cart
 
 type CartItemId
   = { itemId :: ItemId
@@ -51,11 +52,11 @@ type CartItemId
     }
 
 type CartItem
-  = { cartItem :: Item
-    , cartItemQuantity :: Quantity
+  = { item :: Item
+    , quantity :: Quantity
     }
 
 type CartTotal
-  = { cartTotalItems :: Array CartItem
-    , cartTotal :: Money
+  = { items :: Array CartItem
+    , total :: Money
     }

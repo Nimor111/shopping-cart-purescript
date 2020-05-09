@@ -6,7 +6,12 @@ module Web.ShoppingCart.Domain.Category
   ) where
 
 import Prelude
+import Control.Monad.Except (runExcept)
 import Control.Monad.Except.Trans (except)
+import Data.Argonaut.Core (Json, jsonEmptyObject)
+import Data.Argonaut.Decode.Class (class DecodeJson, decodeJson)
+import Data.Argonaut.Encode.Class (class EncodeJson, encodeJson)
+import Data.Argonaut.Encode.Combinators ((:=?), (~>), (:=), (~>?))
 import Data.Either (Either(..))
 import Data.List (singleton)
 import Data.List.Types (NonEmptyList(..))
@@ -15,10 +20,7 @@ import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.NonEmpty (NonEmpty(..), (:|))
 import Data.Refinery.Core (Refined, refine, unrefine)
 import Data.Show (show)
-import Foreign (ForeignError(..))
-import Simple.JSON (class ReadForeign, class WriteForeign, read, writeImpl)
-import Simple.JSON as JSON
-import Web.ShoppingCart.Domain.Refined (NonEmptyString, ValidUUID, refineMaybe, mapMaybeToError, mapToError)
+import Web.ShoppingCart.Domain.Refined (NonEmptyString, ValidUUID, refineMaybe, refineIdentity, mapToError)
 import Web.ShoppingCart.Domain.RefinedPred (NamePred(..), UUIDPred(..))
 
 newtype CategoryId
@@ -35,27 +37,33 @@ type CategoryDTO
 data RefinedCategoryDTO
   = RefinedCategoryDTO (Maybe UUIDPred) NamePred
 
-instance writeForeignRefinedCategory :: WriteForeign RefinedCategoryDTO where
-  writeImpl (RefinedCategoryDTO uuid name) = writeImpl { id: map (\id -> unrefine $ unwrap id) uuid, name: unrefine $ unwrap name }
+instance encodeJsonRefinedCategory :: EncodeJson RefinedCategoryDTO where
+  encodeJson (RefinedCategoryDTO uuid name) =
+    "name" := (unrefine $ unwrap name)
+      ~> "id"
+      :=? map (\id -> unrefine $ unwrap id) uuid
+      ~>? jsonEmptyObject
 
-instance readForeignRefinedCategory :: ReadForeign RefinedCategoryDTO where
-  readImpl val = do
-    (r :: CategoryDTO) <- except $ read val
-    refinedId <- except $ mapMaybeToError $ refineMaybe r.id
-    refinedName <- except $ mapToError $ refine r.name
-    except $ Right $ RefinedCategoryDTO (map UUIDPred refinedId) (NamePred refinedName)
+instance decodeJsonRefinedCategory :: DecodeJson RefinedCategoryDTO where
+  decodeJson json =
+    runExcept
+      $ do
+          (r :: CategoryDTO) <- except $ decodeJson json
+          refinedId <- except $ mapToError $ refineMaybe r.id
+          refinedName <- except $ mapToError $ refineIdentity r.name
+          except $ Right $ RefinedCategoryDTO (map UUIDPred refinedId) (NamePred $ unwrap refinedName)
 
 derive instance newtypeCategoryId :: Newtype CategoryId _
 
 derive instance newtypeCategoryName :: Newtype CategoryName _
 
-derive newtype instance readForeignCategoryId :: JSON.ReadForeign CategoryId
+derive newtype instance encodeJsonCategoryId :: EncodeJson CategoryId
 
-derive newtype instance writeForeignCategoryId :: JSON.WriteForeign CategoryId
+derive newtype instance decodeJsonCategoryId :: DecodeJson CategoryId
 
-derive newtype instance readForeignCategoryName :: JSON.ReadForeign CategoryName
+derive newtype instance encodeJsonCategoryName :: EncodeJson CategoryName
 
-derive newtype instance writeForeignCategoryName :: JSON.WriteForeign CategoryName
+derive newtype instance decodeJsonCategoryName :: DecodeJson CategoryName
 
 type Category
   = { id :: CategoryId

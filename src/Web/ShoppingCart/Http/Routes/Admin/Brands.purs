@@ -1,10 +1,13 @@
 module Web.ShoppingCart.Http.Routes.Admin.Brands where
 
 import Prelude
+
 import Control.Monad.Error.Class (class MonadError, class MonadThrow, throwError)
 import Control.Monad.Except (Except)
 import Control.Monad.Except.Trans (ExceptT(..), runExceptT)
 import Control.Monad.Reader.Class (class MonadAsk)
+import Data.Argonaut.Decode.Class (decodeJson)
+import Data.Argonaut.Parser (jsonParser)
 import Data.Either (Either(..))
 import Data.List.Types (NonEmptyList(..))
 import Data.Newtype (wrap)
@@ -20,8 +23,6 @@ import Foreign (ForeignError(..))
 import HTTPure.Method (Method(..))
 import HTTPure.Request (Request) as HTTPure
 import HTTPure.Response (Response, created, notFound, ok') as HTTPure
-import Simple.JSON (class ReadForeign)
-import Simple.JSON as JSON
 import Web.ShoppingCart.App (AppError)
 import Web.ShoppingCart.Context (Context)
 import Web.ShoppingCart.Domain.Brand (Brand, RefinedBrandDTO(..))
@@ -62,6 +63,6 @@ createBrand brands body =
         ExceptT $ sequence $ Right (brands.create $ { id: (wrap $ toString uuid), name: nameToDomain brandName })
   where
   mapJsonError :: String -> Either (Variant (JsonDecodeError + r)) RefinedBrandDTO
-  mapJsonError body = case JSON.readJSON body of
+  mapJsonError body = case (decodeJson =<< jsonParser body) of
     Left errors -> Left $ jsonDecodeError errors
     Right v -> Right v

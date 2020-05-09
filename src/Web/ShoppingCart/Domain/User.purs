@@ -7,9 +7,16 @@ module Web.ShoppingCart.Domain.User
   , JwtToken(..)
   ) where
 
+import Prelude
+import Control.Monad.Except (runExcept)
+import Control.Monad.Except.Trans (except)
+import Data.Argonaut.Core (Json, jsonEmptyObject)
+import Data.Argonaut.Decode.Class (class DecodeJson, decodeJson)
+import Data.Argonaut.Encode.Class (class EncodeJson, encodeJson)
+import Data.Argonaut.Encode.Combinators ((:=?), (~>), (:=), (~>?))
+
 import Data.Newtype (class Newtype)
 import Data.Show (class Show)
-import Simple.JSON as JSON
 
 newtype UserId
   = UserId String
@@ -33,21 +40,21 @@ derive instance newtypePassword :: Newtype Password _
 
 derive instance newtypeJwtToken :: Newtype JwtToken _
 
-derive newtype instance readForeignUserId :: JSON.ReadForeign UserId
+derive newtype instance decodeJsonUserId :: DecodeJson UserId
 
-derive newtype instance writeForeignUserId :: JSON.WriteForeign UserId
+derive newtype instance encodeJsonUserId :: EncodeJson UserId
 
-derive newtype instance readForeignUserName :: JSON.ReadForeign UserName
+derive newtype instance decodeJsonUserName :: DecodeJson UserName
 
-derive newtype instance writeForeignUserName :: JSON.WriteForeign UserName
+derive newtype instance encodeJsonUserName :: EncodeJson UserName
 
-derive newtype instance readForeignPassword :: JSON.ReadForeign Password
+derive newtype instance decodeJsonPassword :: DecodeJson Password
 
-derive newtype instance writeForeignPassword :: JSON.WriteForeign Password
+derive newtype instance encodeJsonPassword :: EncodeJson Password
 
-derive newtype instance readForeignJwtToken :: JSON.ReadForeign JwtToken
+derive newtype instance decodeJsonJwtToken :: DecodeJson JwtToken
 
-derive newtype instance writeForeignJwtToken :: JSON.WriteForeign JwtToken
+derive newtype instance encodeJsonJwtToken :: EncodeJson JwtToken
 
 type User
   = { userId :: UserId

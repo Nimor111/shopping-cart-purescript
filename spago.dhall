@@ -14,11 +14,11 @@ You can edit this file as you like.
     "uuid",
     "ordered-collections",
     "aff-retry",
-    "simple-json",
     "simple-jwt",
     "checked-exceptions",
     "refinery",
-    "monad-logger"
+    "monad-logger",
+    "argonaut"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]

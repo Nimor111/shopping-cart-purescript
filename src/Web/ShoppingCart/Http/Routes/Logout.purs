@@ -17,7 +17,6 @@ import HTTPure.Method (Method(..))
 import HTTPure.Lookup ((!!))
 import HTTPure.Request (Request) as HTTPure
 import HTTPure.Response (Response, created, noContent, noContent', notFound, ok, ok') as HTTPure
-import Simple.JSON (readJSON, writeJSON) as JSON
 import Web.ShoppingCart.App (AppError)
 import Web.ShoppingCart.Context (Context)
 import Web.ShoppingCart.Domain.User (JwtToken(..), LoginUser(..))

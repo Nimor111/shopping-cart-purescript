@@ -1,10 +1,14 @@
 module Web.ShoppingCart.Http.Routes.Items where
 
 import Prelude
+
 import Control.Monad.Error.Class (class MonadThrow, throwError)
 import Control.Monad.Except.Trans (ExceptT(..), runExceptT)
 import Control.Monad.Logger.Class (class MonadLogger, info)
 import Control.Monad.Reader.Class (class MonadAsk)
+import Data.Argonaut.Core (stringify)
+import Data.Argonaut.Decode.Class (decodeJson)
+import Data.Argonaut.Encode.Class (encodeJson)
 import Data.Either (Either(..))
 import Data.Map.Internal (empty)
 import Data.Maybe (Maybe)
@@ -18,7 +22,6 @@ import HTTPure ((!@))
 import HTTPure.Method (Method(..))
 import HTTPure.Request (Request) as HTTPure
 import HTTPure.Response (Response, notFound, ok') as HTTPure
-import Simple.JSON as JSON
 import Web.ShoppingCart.App (AppError)
 import Web.ShoppingCart.Context (Context)
 import Web.ShoppingCart.Domain.Brand (BrandName(..))
@@ -41,13 +44,13 @@ itemsRouter items req@{ path: [], method: Get } = do
   res <- getItemsByBrandName items req
   case res of
     Left err -> throwError err
-    Right is -> HTTPure.ok' responseHeaders (JSON.writeJSON is)
+    Right is -> HTTPure.ok' responseHeaders (stringify $ encodeJson is)
 
 itemsRouter items req@{ path: [ itemId ], method: Get } = do
   res <- getItemById items itemId
   case res of
     Left err -> throwError err
-    Right item -> HTTPure.ok' responseHeaders (JSON.writeJSON item)
+    Right item -> HTTPure.ok' responseHeaders (stringify $ encodeJson item)
 
 itemsRouter _ _ = HTTPure.notFound
 

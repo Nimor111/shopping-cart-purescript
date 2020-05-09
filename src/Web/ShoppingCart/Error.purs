@@ -36,12 +36,9 @@ import Data.Variant (SProxy(..), Variant, case_, inj, on, onMatch)
 import Database.PostgreSQL (PGError)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Exception (Error, message)
-import Foreign (ForeignError(..))
 import HTTPure.Response (Response, ResponseM) as HTTPure
 import HTTPure.Response (badRequest, conflict, forbidden, internalServerError, notFound)
-import Web.ShoppingCart.Domain.Payment (Payment)
 import Web.ShoppingCart.ErrorTags (_databaseError, _jsonDecodeError, _orderNotFound, _unknownError, _orderCreateFailedError, _paymentFailedError, _loginError, _jwtTokenMissingError, _userNameInUseError, _stringRefineError)
-import Web.ShoppingCart.Services.ShoppingCart (ShoppingCart)
 
 type RowApply (f :: # Type -> # Type) (a :: # Type)
   = f a
@@ -49,9 +46,9 @@ type RowApply (f :: # Type -> # Type) (a :: # Type)
 infixr 0 type RowApply as +
 
 type JsonDecodeError r
-  = ( jsonDecodeError :: (NonEmptyList ForeignError) | r )
+  = ( jsonDecodeError :: String | r )
 
-jsonDecodeError :: forall r. (NonEmptyList ForeignError) -> Variant (JsonDecodeError + r)
+jsonDecodeError :: forall r. String -> Variant (JsonDecodeError + r)
 jsonDecodeError = inj _jsonDecodeError
 
 type OrderNotFoundError r
@@ -79,10 +76,10 @@ orderCreateFailedError :: forall r. Variant (OrderCreateFailedError + r)
 orderCreateFailedError = inj _orderCreateFailedError unit
 
 type PaymentFailedError r
-  = ( paymentFailedError :: Payment | r )
+  = ( paymentFailedError :: { userId :: String, total :: Int } | r )
 
-paymentFailedError :: forall r. Payment -> Variant (PaymentFailedError + r)
-paymentFailedError = inj _paymentFailedError
+paymentFailedError :: forall r. String -> Int -> Variant (PaymentFailedError + r)
+paymentFailedError userId total = inj _paymentFailedError { userId, total }
 
 type LoginError r
   = ( loginError :: Unit | r )

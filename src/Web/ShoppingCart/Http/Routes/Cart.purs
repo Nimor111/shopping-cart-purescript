@@ -1,10 +1,15 @@
 module Web.ShoppingCart.Http.Routes.Cart where
 
 import Prelude
+
 import Control.Monad.Error.Class (class MonadThrow, throwError)
 import Control.Monad.Except.Trans (ExceptT(..), runExceptT)
 import Control.Monad.Logger.Class (class MonadLogger, info)
 import Control.Monad.Reader.Class (class MonadAsk)
+import Data.Argonaut.Core (stringify)
+import Data.Argonaut.Decode.Class (decodeJson)
+import Data.Argonaut.Encode.Class (encodeJson)
+import Data.Argonaut.Parser (jsonParser)
 import Data.Either (Either(..))
 import Data.Foldable (traverse_)
 import Data.List.Types (NonEmptyList(..))
@@ -23,8 +28,6 @@ import HTTPure.Body (class Body)
 import HTTPure.Method (Method(..))
 import HTTPure.Request (Request) as HTTPure
 import HTTPure.Response (Response, noContent', notFound, ok, ok') as HTTPure
-import Simple.JSON (class ReadForeign)
-import Simple.JSON as JSON
 import Web.ShoppingCart.App (AppError)
 import Web.ShoppingCart.Context (Context)
 import Web.ShoppingCart.Domain.Item (ItemId(..))
@@ -72,7 +75,7 @@ getCartByUser ::
 getCartByUser userId cart req = do
   info empty $ "Fetching cart for user with id" <> unwrap userId
   cartTotal <- cart.get userId
-  HTTPure.ok' responseHeaders (JSON.writeJSON cartTotal)
+  HTTPure.ok' responseHeaders (stringify $ encodeJson cartTotal)
 
 addItemsToCart ::
   forall r m.
@@ -83,11 +86,11 @@ addItemsToCart ::
   String ->
   ShoppingCart m ->
   HTTPure.Request ->
-  m (Either (NonEmptyList ForeignError) Unit)
+  m (Either String Unit)
 addItemsToCart userId body cart req =
   runExceptT
     $ do
-        (newCart :: Cart) <- ExceptT $ pure $ JSON.readJSON body
+        (newCart :: Cart) <- ExceptT $ pure $ (decodeJson =<< jsonParser body)
         info empty $ "Adding item to cart for user" <> show userId <> ". Updated cart: " <> show newCart
         ExceptT $ sequence $ Right (addItems newCart)
   where
@@ -103,11 +106,11 @@ updateCart ::
   String ->
   ShoppingCart m ->
   HTTPure.Request ->
-  m (Either (NonEmptyList ForeignError) Unit)
+  m (Either String Unit)
 updateCart userId body cart req =
   runExceptT
     $ do
-        (existingCart :: Cart) <- ExceptT $ pure $ JSON.readJSON body
+        (existingCart :: Cart) <- ExceptT $ pure $ (decodeJson =<< jsonParser body)
         info empty $ "Updating cart for user" <> show userId <> ". Existing cart: " <> show existingCart
         ExceptT $ sequence $ Right (cart.update userId existingCart)
 

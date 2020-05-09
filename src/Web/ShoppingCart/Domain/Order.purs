@@ -5,10 +5,11 @@ module Web.ShoppingCart.Domain.Order
   , OrderItem(..)
   ) where
 
+import Data.Argonaut.Decode.Class (class DecodeJson)
+import Data.Argonaut.Encode.Class (class EncodeJson)
 import Data.Map (Map)
 import Data.Newtype (class Newtype)
 import Data.Show (class Show)
-import Simple.JSON as JSON
 import Web.ShoppingCart.Domain.Item (ItemId(..), Money(..))
 import Web.ShoppingCart.Domain.ShoppingCart (Quantity(..))
 import Web.ShoppingCart.Domain.User (User, UserId(..))
@@ -27,13 +28,13 @@ derive instance newtypeOrderId :: Newtype OrderId _
 
 derive instance newtypePaymentId :: Newtype PaymentId _
 
-derive newtype instance readForeignOrderId :: JSON.ReadForeign OrderId
+derive newtype instance decodeJsonOrderId :: DecodeJson OrderId
 
-derive newtype instance writeForeignOrderId :: JSON.WriteForeign OrderId
+derive newtype instance encodeJsonOrderId :: EncodeJson OrderId
 
-derive newtype instance readForeignPaymentId :: JSON.ReadForeign PaymentId
+derive newtype instance decodeJsonPaymentId :: DecodeJson PaymentId
 
-derive newtype instance writeForeignPaymentId :: JSON.WriteForeign PaymentId
+derive newtype instance encodeJsonPaymentId :: EncodeJson PaymentId
 
 type OrderItem
   = { itemId :: ItemId
@@ -41,9 +42,9 @@ type OrderItem
     }
 
 type Order
-  = { orderId :: OrderId
-    , orderPaymentId :: PaymentId
-    , orderUserId :: UserId
-    , orderItems :: Array (OrderItem)
-    , orderTotal :: Money
+  = { id :: OrderId
+    , paymentId :: PaymentId
+    , userId :: UserId
+    , items :: Array (OrderItem)
+    , total :: Money
     }

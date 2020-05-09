@@ -7,6 +7,7 @@ module Web.ShoppingCart.Database
 import Prelude
 import Control.Monad.Error.Class (class MonadThrow)
 import Control.Monad.Except (ExceptT, throwError)
+import Control.Monad.Logger.Class (class MonadLogger)
 import Control.Monad.Reader (class MonadAsk, ReaderT)
 import Data.Maybe (Maybe(..), maybe)
 import Data.Variant (Variant, inj)
@@ -24,8 +25,8 @@ import Web.ShoppingCart.App (AppError)
 import Web.ShoppingCart.Error (DatabaseError, databaseError, type (+))
 
 hoistSelda ::
-  ∀ e r1 r2 m.
-  MonadAsk { conn ∷ PostgreSQL.Connection | r1 } m =>
+  forall e r1 r2 m.
+  MonadAsk { conn :: PostgreSQL.Connection | r1 } m =>
   MonadThrow (Variant (DatabaseError + r2)) m =>
   MonadAff m =>
   ExceptT PGError (ReaderT PostgreSQL.Connection Aff) ~> m

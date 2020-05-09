@@ -11,19 +11,23 @@ module Web.ShoppingCart.Domain.Item
   ) where
 
 import Prelude
+
+import Control.Monad.Except (runExcept)
 import Control.Monad.Except.Trans (except)
+import Data.Argonaut.Core (Json, jsonEmptyObject)
+import Data.Argonaut.Decode.Class (class DecodeJson, decodeJson)
+import Data.Argonaut.Decode.Combinators ((.:?), (.:))
+import Data.Argonaut.Encode.Class (class EncodeJson)
+import Data.Argonaut.Encode.Combinators ((:=?), (~>), (:=), (~>?))
 import Data.Either (Either(..))
 import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype, unwrap)
 import Data.Refinery.Core (Refined, refine, unrefine)
 import Data.Refinery.Predicate.Numeric (Pos)
 import Data.Show (class Show)
-import Foreign (readUndefined)
-import Simple.JSON (class ReadForeign, class WriteForeign, read, writeImpl)
-import Simple.JSON as JSON
 import Web.ShoppingCart.Domain.Brand (Brand, BrandId(..))
 import Web.ShoppingCart.Domain.Category (Category, CategoryId(..))
-import Web.ShoppingCart.Domain.Refined (NonEmptyString, ValidUUID, mapMaybeToError, mapToError, refineMaybe)
+import Web.ShoppingCart.Domain.Refined (NonEmptyString, ValidUUID, mapToError, refineIdentity, refineMaybe)
 import Web.ShoppingCart.Domain.RefinedPred (NamePred(..), PositiveNumberPred(..), UUIDPred(..))
 
 newtype ItemId
@@ -55,52 +59,75 @@ type ItemDTO
     , categoryId :: String
     }
 
+decodeItemDTO :: Json -> Either String ItemDTO
+decodeItemDTO json = do
+  obj <- decodeJson json
+  id <- obj .:? "id"
+  name <- obj .: "name"
+  description <- obj .: "description"
+  price <- obj .: "price"
+  brandId <- obj .: "brandId"
+  categoryId <- obj .: "categoryId"
+  pure $ { id, name, description, price, brandId, categoryId }
+
+data RefinedItemDTO
+  = RefinedItemDTO (Maybe UUIDPred) NamePred NamePred PositiveNumberPred NamePred NamePred
+
+instance encodeJsonRefinedItem :: EncodeJson RefinedItemDTO where
+  encodeJson (RefinedItemDTO uuid name description price brandId categoryId) =
+    "name" := (unrefine $ unwrap name)
+      ~> "id"
+      :=? map (\id -> unrefine $ unwrap id) uuid
+      ~>? "description"
+      := (unrefine
+      $ unwrap description)
+      ~> "price"
+      := (unrefine
+      $ unwrap price)
+      ~> "brandId"
+      := (unrefine
+      $ unwrap brandId)
+      ~> "categoryId"
+      := (unrefine
+      $ unwrap categoryId)
+      ~> jsonEmptyObject
+
+instance decodeJsonRefinedItem :: DecodeJson RefinedItemDTO where
+  decodeJson json =
+    runExcept
+      $ do
+          r <- except $ decodeItemDTO json
+          refinedId <- except $ mapToError $ refineMaybe r.id
+          refinedName <- except $ mapToError $ refineIdentity r.name
+          refinedDescription <- except $ mapToError $ refineIdentity r.description
+          refinedPrice <- except $ mapToError $ refineIdentity r.price
+          refinedBrandId <- except $ mapToError $ refineIdentity r.brandId
+          refinedCategoryId <- except $ mapToError $ refineIdentity r.categoryId
+          except $ Right $ RefinedItemDTO (map UUIDPred refinedId) (NamePred $ unwrap refinedName) (NamePred $ unwrap refinedDescription) (PositiveNumberPred $ unwrap refinedPrice) (NamePred $ unwrap refinedBrandId) (NamePred $ unwrap refinedCategoryId)
+
 type UpdateItemDTO
   = { id :: String
     , price :: Int
     }
 
-data RefinedItemDTO
-  = RefinedItemDTO (Maybe UUIDPred) NamePred NamePred PositiveNumberPred NamePred NamePred
-
-instance writeForeignRefinedItem :: WriteForeign RefinedItemDTO where
-  writeImpl (RefinedItemDTO uuid name description price brandId categoryId) =
-    writeImpl
-      { id: map (\id -> unrefine $ unwrap id) uuid
-      , name: unrefine $ unwrap name
-      , description: unrefine $ unwrap description
-      , price: unrefine $ unwrap price
-      , brandId: unrefine $ unwrap brandId
-      , categoryId: unrefine $ unwrap categoryId
-      }
-
-instance readForeignRefinedItem :: ReadForeign RefinedItemDTO where
-  readImpl val = do
-    (r :: ItemDTO) <- except $ read val
-    refinedId <- except $ mapMaybeToError $ refineMaybe r.id
-    refinedName <- except $ mapToError $ refine r.name
-    refinedDescription <- except $ mapToError $ refine r.description
-    refinedPrice <- except $ mapToError $ refine r.price
-    refinedBrandId <- except $ mapToError $ refine r.brandId
-    refinedCategoryId <- except $ mapToError $ refine r.categoryId
-    except $ Right $ RefinedItemDTO (map UUIDPred refinedId) (NamePred refinedName) (NamePred refinedDescription) (PositiveNumberPred refinedPrice) (NamePred refinedBrandId) (NamePred refinedCategoryId)
-
 data RefinedItemUpdateDTO
   = RefinedItemUpdateDTO UUIDPred PositiveNumberPred
 
-instance writeForeignRefinedUpdateItem :: WriteForeign RefinedItemUpdateDTO where
-  writeImpl (RefinedItemUpdateDTO uuid price) =
-    writeImpl
-      { id: unrefine $ unwrap uuid
-      , price: unrefine $ unwrap price
-      }
+instance encodeJsonRefinedItemUpdate :: EncodeJson RefinedItemUpdateDTO where
+  encodeJson (RefinedItemUpdateDTO uuid price) =
+    "price" := (unrefine $ unwrap price)
+      ~> "id"
+      := (unrefine $ unwrap uuid)
+      ~> jsonEmptyObject
 
-instance readForeignRefinedUpdateItem :: ReadForeign RefinedItemUpdateDTO where
-  readImpl val = do
-    (r :: UpdateItemDTO) <- except $ read val
-    refinedId <- except $ mapToError $ refine r.id
-    refinedPrice <- except $ mapToError $ refine r.price
-    except $ Right $ RefinedItemUpdateDTO (UUIDPred refinedId) (PositiveNumberPred refinedPrice)
+instance decodeJsonRefinedItemUpdate :: DecodeJson RefinedItemUpdateDTO where
+  decodeJson json =
+    runExcept
+      $ do
+          (r :: UpdateItemDTO) <- except $ decodeJson json
+          refinedId <- except $ mapToError $ refineIdentity r.id
+          refinedPrice <- except $ mapToError $ refineIdentity r.price
+          except $ Right $ RefinedItemUpdateDTO (UUIDPred $ unwrap refinedId) (PositiveNumberPred $ unwrap refinedPrice)
 
 derive instance newtypeItemId :: Newtype ItemId _
 
@@ -110,21 +137,21 @@ derive instance newtypeItemDescription :: Newtype ItemDescription _
 
 derive instance newtypeMoney :: Newtype Money _
 
-derive newtype instance readForeignItemId :: JSON.ReadForeign ItemId
+derive newtype instance decodeJsonItemId :: DecodeJson ItemId
 
-derive newtype instance writeForeignItemId :: JSON.WriteForeign ItemId
+derive newtype instance encodeJsonItemId :: EncodeJson ItemId
 
-derive newtype instance readForeignItemName :: JSON.ReadForeign ItemName
+derive newtype instance encodeJsonItemName :: EncodeJson ItemName
 
-derive newtype instance writeForeignItemName :: JSON.WriteForeign ItemName
+derive newtype instance decodeJsonItemName :: DecodeJson ItemName
 
-derive newtype instance readForeignItemDescription :: JSON.ReadForeign ItemDescription
+derive newtype instance encodeJsonItemDescription :: EncodeJson ItemDescription
 
-derive newtype instance writeForeignItemDescription :: JSON.WriteForeign ItemDescription
+derive newtype instance decodeJsonItemDescription :: DecodeJson ItemDescription
 
-derive newtype instance readForeignMoney :: JSON.ReadForeign Money
+derive newtype instance encodeJsonMoney :: EncodeJson Money
 
-derive newtype instance writeForeignMoney :: JSON.WriteForeign Money
+derive newtype instance decodeJsonMoney :: DecodeJson Money
 
 type Item
   = { id :: ItemId

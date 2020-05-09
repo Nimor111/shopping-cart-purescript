@@ -9,6 +9,7 @@ module Web.ShoppingCart.Database.Tables
   ) where
 
 import Prelude
+
 import Control.Monad.Error.Class (class MonadThrow)
 import Control.Monad.Except (ExceptT, throwError)
 import Control.Monad.Reader (class MonadAsk, ReaderT)
@@ -23,9 +24,7 @@ import Selda.Query.Class (hoistSeldaWith)
 import Selda.Table (Table(..))
 import Web.ShoppingCart.App (AppError)
 import Web.ShoppingCart.Database (execute)
-import Web.ShoppingCart.Domain.Brand (Brand, BrandId(..), BrandName(..))
-import Web.ShoppingCart.Domain.Category (Category, CategoryId(..), CategoryName(..))
-import Web.ShoppingCart.Domain.Order (OrderItem)
+import Web.ShoppingCart.Domain.Item (Item)
 import Web.ShoppingCart.Error (DatabaseError, databaseError, type (+))
 
 createTables :: PostgreSQL.Connection -> Aff Unit
@@ -119,7 +118,7 @@ dropItems =
     DROP TABLE items;
 """
 
-orders :: Table ( id :: String, total :: Int, userId :: String, paymentId :: String, items :: Array (OrderItem) )
+orders :: Table ( id :: String, total :: Int, userId :: String, paymentId :: String, items :: Array { item :: Item, quantity :: Int } )
 orders = Table { name: "orders" }
 
 createOrders :: PostgreSQL.Connection -> Aff Unit

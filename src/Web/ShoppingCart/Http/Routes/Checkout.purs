@@ -1,10 +1,13 @@
 module Web.ShoppingCart.Http.Routes.Checkout where
 
 import Prelude
+
 import Control.Monad.Error.Class (class MonadError, class MonadThrow, throwError)
 import Control.Monad.Except.Trans (ExceptT(..), runExceptT)
 import Control.Monad.Logger.Class (class MonadLogger, info)
 import Control.Monad.Reader.Class (class MonadAsk)
+import Data.Argonaut.Decode.Class (decodeJson)
+import Data.Argonaut.Parser (jsonParser)
 import Data.Either (Either(..))
 import Data.List.Types (NonEmptyList(..))
 import Data.Map.Internal (empty)
@@ -20,7 +23,6 @@ import HTTPure.Body (class Body)
 import HTTPure.Method (Method(..))
 import HTTPure.Request (Request) as HTTPure
 import HTTPure.Response (Response, created, noContent', notFound, ok, ok') as HTTPure
-import Simple.JSON (readJSON, writeJSON) as JSON
 import Web.ShoppingCart.App (AppError)
 import Web.ShoppingCart.Context (Context)
 import Web.ShoppingCart.Domain.Card (Card)
@@ -78,11 +80,6 @@ handleCheckout payments cart orders userId body =
         ExceptT $ sequence $ Right (checkout payments cart orders userId card)
   where
   mapJsonError :: forall r1. String -> Either (Variant (JsonDecodeError + r1)) Card
-  mapJsonError body =
-    map
-      ( \c -> case c of
-          Left errors -> Left $ jsonDecodeError errors
-          Right v -> Right v
-      )
-      JSON.readJSON
-      body
+  mapJsonError body = case decodeJson =<< jsonParser body of
+    Left error -> Left $ jsonDecodeError error
+    Right v -> Right v

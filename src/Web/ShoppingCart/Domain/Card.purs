@@ -6,9 +6,10 @@ module Web.ShoppingCart.Domain.Card
   , CVV(..)
   ) where
 
+import Data.Argonaut.Decode.Class (class DecodeJson)
+import Data.Argonaut.Encode.Class (class EncodeJson)
 import Data.Newtype (class Newtype)
 import Data.Show (class Show)
-import Simple.JSON as JSON
 
 newtype CardName
   = CardName String
@@ -38,21 +39,21 @@ derive instance newtypeCardExpiration :: Newtype CardExpiration _
 
 derive instance newtypeCVV :: Newtype CVV _
 
-derive newtype instance readForeignCardName :: JSON.ReadForeign CardName
+derive newtype instance decodeJsonCardName :: DecodeJson CardName
 
-derive newtype instance writeForeignCardName :: JSON.WriteForeign CardName
+derive newtype instance encodeJsonCardName :: EncodeJson CardName
 
-derive newtype instance readForeignCardNumber :: JSON.ReadForeign CardNumber
+derive newtype instance decodeJsonCardNumber :: DecodeJson CardNumber
 
-derive newtype instance writeForeignCardNumber :: JSON.WriteForeign CardNumber
+derive newtype instance encodeJsonCardNumber :: EncodeJson CardNumber
 
-derive newtype instance readForeignCardExpiration :: JSON.ReadForeign CardExpiration
+derive newtype instance decodeJsonCardExpiration :: DecodeJson CardExpiration
 
-derive newtype instance writeForeignCardExpiration :: JSON.WriteForeign CardExpiration
+derive newtype instance encodeJsonCardExpiration :: EncodeJson CardExpiration
 
-derive newtype instance readForeignCVV :: JSON.ReadForeign CVV
+derive newtype instance decodeJsonCVV :: DecodeJson CVV
 
-derive newtype instance writeForeignCVV :: JSON.WriteForeign CVV
+derive newtype instance encodeJsonCVV :: EncodeJson CVV
 
 type Card
   = { cardName :: CardName
