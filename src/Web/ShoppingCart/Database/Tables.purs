@@ -9,9 +9,11 @@ module Web.ShoppingCart.Database.Tables
   ) where
 
 import Prelude
+
 import Control.Monad.Error.Class (class MonadThrow)
 import Control.Monad.Except (ExceptT, throwError)
 import Control.Monad.Reader (class MonadAsk, ReaderT)
+import Data.Argonaut.Core (Json)
 import Data.Maybe (Maybe(..), maybe)
 import Data.Variant (Variant, inj)
 import Database.PostgreSQL (PGError)
@@ -117,7 +119,7 @@ dropItems =
     DROP TABLE items;
 """
 
-orders :: Table ( id :: String, total :: Int, userId :: String, paymentId :: String, items :: Array { item :: Item, quantity :: Int } )
+orders :: Table ( id :: String, total :: Int, userId :: String, paymentId :: String, items :: Json )
 orders = Table { name: "orders" }
 
 createOrders :: PostgreSQL.Connection -> Aff Unit

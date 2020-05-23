@@ -3,9 +3,11 @@ module Web.ShoppingCart.Programs.Checkout
   ) where
 
 import Prelude
+
 import Control.Monad.Error.Class (class MonadError, try, catchError, throwError)
-import Data.Newtype (unwrap)
+import Data.Newtype (unwrap, wrap)
 import Data.Time.Duration (Milliseconds(..))
+import Data.UUID (genUUID, toString)
 import Data.Variant (Variant)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Aff.Retry (RetryStatus, recovering)
@@ -76,7 +78,8 @@ createOrder ordersClient userId paymentId cartItems cartTotal = backgroundAction
   action :: RetryStatus -> m OrderId
   action _ = do
     liftEffect $ log "Creating order..."
-    ordersClient.create userId paymentId cartItems cartTotal
+    orderId <- liftEffect genUUID
+    ordersClient.create (wrap $ toString orderId) userId paymentId cartItems cartTotal
 
 processPayment ::
   forall r m.
