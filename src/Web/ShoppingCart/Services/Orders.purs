@@ -1,5 +1,6 @@
 module Web.ShoppingCart.Services.Orders
   ( Orders(..)
+  , mkOrders
   ) where
 
 import Prelude

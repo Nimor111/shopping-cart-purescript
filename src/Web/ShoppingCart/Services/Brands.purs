@@ -4,6 +4,9 @@ module Web.ShoppingCart.Services.Brands
   ) where
 
 import Prelude
+
+import Control.Monad.Logger.Class (debug)
+import Data.Map.Internal (empty)
 import Data.Newtype (unwrap)
 import Data.Show (show)
 import Database.PostgreSQL as PostgreSQL
@@ -36,23 +39,24 @@ toBrand :: DBBrand -> Brand
 toBrand { id, name } = { id: BrandId id, name: BrandName name }
 
 create :: forall r. Brand -> App r Unit
-create { id, name } =
+create { id, name } = do
+  let
+    str = generateSQLStringFromQuery
+    brandData = { id: unwrap id, name: unwrap name }
+
+  debug empty $ "Creating new brand with id " <> unwrap id <> " and name " <> unwrap name
   hoistSelda do
-    let
-      str = generateSQLStringFromQuery
-    let
-      brandData = { id: unwrap id, name: unwrap name }
     insert1_ brands brandData
 
 findAll :: forall r. App r (Array Brand)
-findAll =
+findAll = do
+  let
+    str = generateSQLStringFromQuery
+    sql =
+      selectFrom brands \{ id, name } -> do
+        pure { id, name }
+
+  debug empty $ str sql
   hoistSelda do
-    let
-      str = generateSQLStringFromQuery
-    let
-      sql =
-        selectFrom brands \{ id, name } -> do
-          pure { id, name }
-    log $ str sql
     dbBrands <- query sql
     pure $ map toBrand dbBrands

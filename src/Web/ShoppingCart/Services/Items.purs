@@ -4,7 +4,10 @@ module Web.ShoppingCart.Services.Items
   ) where
 
 import Prelude
+
+import Control.Monad.Logger.Class (debug)
 import Data.Array (head)
+import Data.Map.Internal (empty)
 import Data.Maybe (Maybe)
 import Data.Newtype (unwrap)
 import Data.Show (show)
@@ -53,59 +56,61 @@ toItem :: DBItem -> Item
 toItem { id, name, description, price, brandId, categoryId } = { id: ItemId id, name: ItemName name, description: ItemDescription description, price: Money price, brandId: BrandId brandId, categoryId: CategoryId categoryId }
 
 findAll :: forall r. App r (Array Item)
-findAll =
+findAll = do
+  let
+    str = generateSQLStringFromQuery
+    sql =
+      selectFrom items \{ id, name, description, price, brandId, categoryId } -> do
+        pure { id, name, description, price, brandId, categoryId }
+
+  debug empty $ str sql
   hoistSelda do
-    let
-      str = generateSQLStringFromQuery
-    let
-      sql =
-        selectFrom items \{ id, name, description, price, brandId, categoryId } -> do
-          pure { id, name, description, price, brandId, categoryId }
-    log $ str sql
     dbItems <- query sql
     pure $ map toItem dbItems
 
 findBy :: forall r. BrandName -> App r (Array Item)
-findBy (BrandName brandName) =
+findBy (BrandName brandName) = do
+  let
+    str = generateSQLStringFromQuery
+    sql =
+      selectFrom items \{ id, name, description, price, brandId, categoryId } -> do
+        b <-
+          innerJoin brands \brand -> brandId .== brand.id
+        restrict $ b.name .== (lit brandName)
+        pure { id, name, description, price, brandId, categoryId }
+
+  debug empty $ str sql
   hoistSelda do
-    let
-      str = generateSQLStringFromQuery
-    let
-      sql =
-        selectFrom items \{ id, name, description, price, brandId, categoryId } -> do
-          b <-
-            innerJoin brands \brand -> brandId .== brand.id
-          restrict $ b.name .== (lit brandName)
-          pure { id, name, description, price, brandId, categoryId }
-    log $ str sql
     dbItems <- query sql
     pure $ map toItem dbItems
 
 findById :: forall r. ItemId -> App r (Maybe Item)
-findById (ItemId itemId) =
+findById (ItemId itemId) = do
+  let
+    str = generateSQLStringFromQuery
+    sql =
+      selectFrom items \{ id, name, description, price, brandId, categoryId } -> do
+        restrict $ (lit itemId) .== id
+        pure $ { id, name, description, price, brandId, categoryId }
+
+  debug empty $ str sql
   hoistSelda do
-    let
-      str = generateSQLStringFromQuery
-    let
-      sql =
-        selectFrom items \{ id, name, description, price, brandId, categoryId } -> do
-          restrict $ (lit itemId) .== id
-          pure $ { id, name, description, price, brandId, categoryId }
-    log $ str sql
     dbItems <- query sql
     pure $ map toItem $ head dbItems
 
 create :: forall r. CreateItem -> App r Unit
-create { id, name, description, price, brandId, categoryId } =
+create { id, name, description, price, brandId, categoryId } = do
+  let
+    str = generateSQLStringFromQuery
+    itemData = { id: unwrap id, name: unwrap name, description: unwrap description, price: unwrap price, brandId: unwrap brandId, categoryId: unwrap categoryId }
+
+  debug empty $ "Creating new item with id " <> unwrap id <> " and name " <> unwrap name
   hoistSelda do
-    let
-      str = generateSQLStringFromQuery
-    let
-      itemData = { id: unwrap id, name: unwrap name, description: unwrap description, price: unwrap price, brandId: unwrap brandId, categoryId: unwrap categoryId }
     insert1_ items itemData
 
 update :: forall r. UpdateItem -> App r Unit
-update { id, price } =
+update { id, price } = do
+  debug empty $ "Updating item with id " <> unwrap id
   hoistSelda do
     SeldaPG.update items
       (\r -> r.id .== (lit $ unwrap id))

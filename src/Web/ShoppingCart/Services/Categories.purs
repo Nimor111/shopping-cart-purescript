@@ -4,7 +4,9 @@ module Web.ShoppingCart.Services.Categories
   ) where
 
 import Prelude
-import Web.ShoppingCart.Domain.Category (Category)
+
+import Control.Monad.Logger.Class (debug)
+import Data.Map.Internal (empty)
 import Data.Newtype (unwrap)
 import Data.Show (show)
 import Database.PostgreSQL as PostgreSQL
@@ -15,6 +17,7 @@ import Selda.Query (selectFrom)
 import Web.ShoppingCart.App (App)
 import Web.ShoppingCart.Database (generateSQLStringFromQuery, hoistSelda)
 import Web.ShoppingCart.Database.Tables (categories)
+import Web.ShoppingCart.Domain.Category (Category)
 import Web.ShoppingCart.Domain.Category (Category, CategoryId(..), CategoryName(..))
 
 type Categories m
@@ -37,23 +40,24 @@ toCategory :: DBCategory -> Category
 toCategory { id, name } = { id: CategoryId id, name: CategoryName name }
 
 create :: forall r. Category -> App r Unit
-create { id, name } =
+create { id, name } = do
+  let
+    str = generateSQLStringFromQuery
+    categoryData = { id: unwrap id, name: unwrap name }
+
+  debug empty $ "Creating new category with id " <> unwrap id <> " and name " <> unwrap name
   hoistSelda do
-    let
-      str = generateSQLStringFromQuery
-    let
-      categoryData = { id: unwrap id, name: unwrap name }
     insert1_ categories categoryData
 
 findAll :: forall r. App r (Array Category)
-findAll =
+findAll = do
+  let
+    str = generateSQLStringFromQuery
+    sql =
+      selectFrom categories \{ id, name } -> do
+        pure { id, name }
+
+  debug empty $ str sql
   hoistSelda do
-    let
-      str = generateSQLStringFromQuery
-    let
-      sql =
-        selectFrom categories \{ id, name } -> do
-          pure { id, name }
-    log $ str sql
     dbCategories <- query sql
     pure $ map toCategory dbCategories

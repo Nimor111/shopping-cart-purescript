@@ -4,13 +4,16 @@ module Web.ShoppingCart.Server
   ) where
 
 import Prelude
+
 import Control.Bind ((>=>))
 import Control.Monad.Error.Class (class MonadError, class MonadThrow)
-import Control.Monad.Logger.Class (class MonadLogger)
+import Control.Monad.Logger.Class (class MonadLogger, info)
 import Control.Monad.Logger.Trans (runLoggerT)
 import Control.Monad.Reader.Class (class MonadAsk)
 import Data.Log.Formatter.Pretty (prettyFormatter)
-import Effect.Aff.Class (class MonadAff)
+import Data.Map.Internal (empty)
+import Effect.Aff (launchAff_, runAff, runAff_)
+import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class.Console as Console
 import HTTPure (ServerM, serve) as HTTPure
 import HTTPure.Request (Request) as HTTPure
@@ -77,15 +80,16 @@ authRoutes services =
 type Services m
   = { brands :: Brands m
     , items :: Items m
-    {--, auth :: Auth m--}
     , categories :: Categories m
-    {--, orders :: Orders m--}
+    , orders :: Orders m
+    {--, auth :: Auth m--}
     {--, payments :: Payments m--}
     {--, users :: Users m--}
     {--, shoppingCart :: ShoppingCart m--}
     }
 
 server :: forall r. Context -> Services (App r) -> HTTPure.ServerM
-server ctx services = HTTPure.serve 8080 middlewares $ Console.log "Server up on port 8080"
+server ctx services = HTTPure.serve 8080 middlewares callback
   where
   middlewares = appMiddleware ctx (router $ appRoutes services)
+  callback = launchAff_ $ runApp ctx $ info empty $ "Starting server on port 8080..."

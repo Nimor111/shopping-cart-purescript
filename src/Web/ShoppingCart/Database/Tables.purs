@@ -10,50 +10,43 @@ module Web.ShoppingCart.Database.Tables
 
 import Prelude
 
-import Control.Monad.Error.Class (class MonadThrow)
-import Control.Monad.Except (ExceptT, throwError)
-import Control.Monad.Reader (class MonadAsk, ReaderT)
+import Control.Monad.Logger.Class (class MonadLogger, info)
 import Data.Argonaut.Core (Json)
-import Data.Maybe (Maybe(..), maybe)
-import Data.Variant (Variant, inj)
-import Database.PostgreSQL (PGError)
+import Data.Map.Internal (empty)
 import Database.PostgreSQL as PostgreSQL
 import Effect.Aff (Aff, error)
-import Effect.Aff.Class (class MonadAff)
+import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class.Console (log)
-import Selda.Query.Class (hoistSeldaWith)
 import Selda.Table (Table(..))
-import Web.ShoppingCart.App (AppError)
+import Web.ShoppingCart.App (App)
 import Web.ShoppingCart.Database (execute)
-import Web.ShoppingCart.Domain.Item (Item)
-import Web.ShoppingCart.Error (DatabaseError, databaseError, type (+))
 
-createTables :: PostgreSQL.Connection -> Aff Unit
+createTables :: forall r. PostgreSQL.Connection -> App r Unit
 createTables conn = do
-  log "Creating tables..."
+  info empty $ "Creating tables..."
   createBrands conn
   createCategories conn
   createItems conn
   createUsers conn
   createOrders conn
-  log "Tables created."
+  info empty $ "Tables created."
 
-dropTables :: PostgreSQL.Connection -> Aff Unit
+dropTables :: forall r. PostgreSQL.Connection -> App r Unit
 dropTables conn = do
-  log "Dropping tables..."
+  info empty $ "Dropping tables..."
   dropItems conn
   dropOrders conn
   dropUsers conn
   dropBrands conn
   dropCategories conn
-  log "Tables dropped."
+  info empty $ "Tables dropped."
 
 brands :: Table ( id :: String, name :: String )
 brands = Table { name: "brands" }
 
-createBrands :: PostgreSQL.Connection -> Aff Unit
+createBrands :: forall r. PostgreSQL.Connection -> App r Unit
 createBrands =
-  execute
+  liftAff <<< execute
     """
   CREATE TABLE IF NOT EXISTS brands (
     id UUID PRIMARY KEY,
@@ -61,9 +54,9 @@ createBrands =
   );
 """
 
-dropBrands :: PostgreSQL.Connection -> Aff Unit
+dropBrands :: forall r. PostgreSQL.Connection -> App r Unit
 dropBrands =
-  execute
+  liftAff <<< execute
     """
     DROP TABLE brands;
 """
@@ -71,9 +64,9 @@ dropBrands =
 categories :: Table ( id :: String, name :: String )
 categories = Table { name: "categories" }
 
-createCategories :: PostgreSQL.Connection -> Aff Unit
+createCategories :: forall r. PostgreSQL.Connection -> App r Unit
 createCategories =
-  execute
+  liftAff <<< execute
     """
   CREATE TABLE IF NOT EXISTS categories (
     id UUID PRIMARY KEY,
@@ -81,9 +74,9 @@ createCategories =
   );
 """
 
-dropCategories :: PostgreSQL.Connection -> Aff Unit
+dropCategories :: forall r. PostgreSQL.Connection -> App r Unit
 dropCategories =
-  execute
+  liftAff <<< execute
     """
     DROP TABLE categories;
 """
@@ -92,9 +85,9 @@ items :: Table ( id :: String, name :: String, description :: String, price :: I
 items = Table { name: "items" }
 
 -- TODO: make price a REAL
-createItems :: PostgreSQL.Connection -> Aff Unit
+createItems :: forall r. PostgreSQL.Connection -> App r Unit
 createItems =
-  execute
+  liftAff <<< execute
     """
   CREATE TABLE IF NOT EXISTS items (
     id UUID PRIMARY KEY,
@@ -112,9 +105,9 @@ createItems =
   );
 """
 
-dropItems :: PostgreSQL.Connection -> Aff Unit
+dropItems :: forall r. PostgreSQL.Connection -> App r Unit
 dropItems =
-  execute
+  liftAff <<< execute
     """
     DROP TABLE items;
 """
@@ -122,9 +115,9 @@ dropItems =
 orders :: Table ( id :: String, total :: Int, userId :: String, paymentId :: String, items :: Json )
 orders = Table { name: "orders" }
 
-createOrders :: PostgreSQL.Connection -> Aff Unit
+createOrders :: forall r. PostgreSQL.Connection -> App r Unit
 createOrders =
-  execute
+  liftAff <<< execute
     """
   CREATE TABLE IF NOT EXISTS orders (
     id UUID PRIMARY KEY,
@@ -138,9 +131,9 @@ createOrders =
   );
 """
 
-dropOrders :: PostgreSQL.Connection -> Aff Unit
+dropOrders :: forall r. PostgreSQL.Connection -> App r Unit
 dropOrders =
-  execute
+  liftAff <<< execute
     """
     DROP TABLE orders;
 """
@@ -148,9 +141,9 @@ dropOrders =
 users :: Table ( id :: String, userName :: String, password :: String )
 users = Table { name: "users" }
 
-createUsers :: PostgreSQL.Connection -> Aff Unit
+createUsers :: forall r. PostgreSQL.Connection -> App r Unit
 createUsers =
-  execute
+  liftAff <<< execute
     """
   CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY,
@@ -159,9 +152,9 @@ createUsers =
   );
 """
 
-dropUsers :: PostgreSQL.Connection -> Aff Unit
+dropUsers :: forall r. PostgreSQL.Connection -> App r Unit
 dropUsers =
-  execute
+  liftAff <<< execute
     """
     DROP TABLE users;
 """
