@@ -91,6 +91,16 @@ let additions =
     , version =
         "548d3b66b6c3b4ab06422c9dbf0544cfc0860ff2"
     }
+  , node-bcrypt = 
+    { dependencies = 
+        [ "prelude"
+        , "aff"
+        , "newtype" ]
+    , repo =
+        "https://github.com/vlopmartin/purescript-node-bcrypt.git"
+    , version =
+        "54b9c8ae7161d8e75fc876436ba6ffdcae6fa9e3"
+    }
   }
 
 in  upstream // overrides // additions

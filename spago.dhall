@@ -18,7 +18,8 @@ You can edit this file as you like.
     "checked-exceptions",
     "refinery",
     "monad-logger",
-    "argonaut"
+    "argonaut",
+    "node-bcrypt"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]

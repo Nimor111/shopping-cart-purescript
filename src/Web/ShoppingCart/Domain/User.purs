@@ -56,7 +56,7 @@ derive newtype instance decodeJsonJwtToken :: DecodeJson JwtToken
 derive newtype instance encodeJsonJwtToken :: EncodeJson JwtToken
 
 type User
-  = { userId :: UserId
+  = { id :: UserId
     , userName :: UserName
     }
 

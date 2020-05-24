@@ -749,6 +749,18 @@ let
         installPhase = "ln -s $src $out";
       };
 
+    "node-bcrypt" = pkgs.stdenv.mkDerivation {
+        name = "node-bcrypt";
+        version = "54b9c8ae7161d8e75fc876436ba6ffdcae6fa9e3";
+        src = pkgs.fetchgit {
+          url = "https://github.com/vlopmartin/purescript-node-bcrypt.git";
+          rev = "54b9c8ae7161d8e75fc876436ba6ffdcae6fa9e3";
+          sha256 = "1ll8b0ysfdqxs1jszi75q2xijdcgxvx7jqpl30q5vcqfshhgvcf1";
+        };
+        phases = "installPhase";
+        installPhase = "ln -s $src $out";
+      };
+
     "node-buffer" = pkgs.stdenv.mkDerivation {
         name = "node-buffer";
         version = "v6.0.0";
