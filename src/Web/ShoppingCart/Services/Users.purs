@@ -1,5 +1,6 @@
 module Web.ShoppingCart.Services.Users
   ( Users(..)
+  , mkUsers
   ) where
 
 import Prelude

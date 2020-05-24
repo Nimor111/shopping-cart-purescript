@@ -81,9 +81,9 @@ type Services m
     , items :: Items m
     , categories :: Categories m
     , orders :: Orders m
+    , users :: Users m
     {--, auth :: Auth m--}
     {--, payments :: Payments m--}
-    {--, users :: Users m--}
     {--, shoppingCart :: ShoppingCart m--}
     }
 

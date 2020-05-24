@@ -9,6 +9,7 @@ import Web.ShoppingCart.Services.Brands (mkBrands)
 import Web.ShoppingCart.Services.Categories (mkCategories)
 import Web.ShoppingCart.Services.Items (mkItems)
 import Web.ShoppingCart.Services.Orders (mkOrders)
+import Web.ShoppingCart.Services.Users (mkUsers)
 
 services :: forall r. Services (App r)
 services =
@@ -16,6 +17,7 @@ services =
   , categories: mkCategories
   , items: mkItems
   , orders: mkOrders
+  , users: mkUsers
   }
 
 main :: Effect Unit
