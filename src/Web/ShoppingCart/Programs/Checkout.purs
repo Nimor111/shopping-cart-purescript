@@ -3,7 +3,6 @@ module Web.ShoppingCart.Programs.Checkout
   ) where
 
 import Prelude
-
 import Control.Monad.Error.Class (class MonadError, try, catchError, throwError)
 import Data.Newtype (unwrap, wrap)
 import Data.Time.Duration (Milliseconds(..))

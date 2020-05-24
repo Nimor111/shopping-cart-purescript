@@ -4,7 +4,6 @@ module Web.ShoppingCart.Server
   ) where
 
 import Prelude
-
 import Control.Bind ((>=>))
 import Control.Monad.Error.Class (class MonadError, class MonadThrow)
 import Control.Monad.Logger.Class (class MonadLogger, info)
@@ -92,4 +91,5 @@ server :: forall r. Context -> Services (App r) -> HTTPure.ServerM
 server ctx services = HTTPure.serve 8080 middlewares callback
   where
   middlewares = appMiddleware ctx (router $ appRoutes services)
+
   callback = launchAff_ $ runApp ctx $ info empty $ "Starting server on port 8080..."

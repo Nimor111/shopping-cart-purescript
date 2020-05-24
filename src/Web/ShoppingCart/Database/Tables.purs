@@ -9,7 +9,6 @@ module Web.ShoppingCart.Database.Tables
   ) where
 
 import Prelude
-
 import Control.Monad.Logger.Class (class MonadLogger, info)
 import Data.Argonaut.Core (Json)
 import Data.Map.Internal (empty)
@@ -46,8 +45,9 @@ brands = Table { name: "brands" }
 
 createBrands :: forall r. PostgreSQL.Connection -> App r Unit
 createBrands =
-  liftAff <<< execute
-    """
+  liftAff
+    <<< execute
+        """
   CREATE TABLE IF NOT EXISTS brands (
     id UUID PRIMARY KEY,
     name TEXT NOT NULL
@@ -56,8 +56,9 @@ createBrands =
 
 dropBrands :: forall r. PostgreSQL.Connection -> App r Unit
 dropBrands =
-  liftAff <<< execute
-    """
+  liftAff
+    <<< execute
+        """
     DROP TABLE brands;
 """
 
@@ -66,8 +67,9 @@ categories = Table { name: "categories" }
 
 createCategories :: forall r. PostgreSQL.Connection -> App r Unit
 createCategories =
-  liftAff <<< execute
-    """
+  liftAff
+    <<< execute
+        """
   CREATE TABLE IF NOT EXISTS categories (
     id UUID PRIMARY KEY,
     name TEXT NOT NULL
@@ -76,8 +78,9 @@ createCategories =
 
 dropCategories :: forall r. PostgreSQL.Connection -> App r Unit
 dropCategories =
-  liftAff <<< execute
-    """
+  liftAff
+    <<< execute
+        """
     DROP TABLE categories;
 """
 
@@ -87,8 +90,9 @@ items = Table { name: "items" }
 -- TODO: make price a REAL
 createItems :: forall r. PostgreSQL.Connection -> App r Unit
 createItems =
-  liftAff <<< execute
-    """
+  liftAff
+    <<< execute
+        """
   CREATE TABLE IF NOT EXISTS items (
     id UUID PRIMARY KEY,
     name TEXT NOT NULL,
@@ -107,8 +111,9 @@ createItems =
 
 dropItems :: forall r. PostgreSQL.Connection -> App r Unit
 dropItems =
-  liftAff <<< execute
-    """
+  liftAff
+    <<< execute
+        """
     DROP TABLE items;
 """
 
@@ -117,8 +122,9 @@ orders = Table { name: "orders" }
 
 createOrders :: forall r. PostgreSQL.Connection -> App r Unit
 createOrders =
-  liftAff <<< execute
-    """
+  liftAff
+    <<< execute
+        """
   CREATE TABLE IF NOT EXISTS orders (
     id UUID PRIMARY KEY,
     paymentId UUID UNIQUE NOT NULL,
@@ -133,8 +139,9 @@ createOrders =
 
 dropOrders :: forall r. PostgreSQL.Connection -> App r Unit
 dropOrders =
-  liftAff <<< execute
-    """
+  liftAff
+    <<< execute
+        """
     DROP TABLE orders;
 """
 
@@ -143,8 +150,9 @@ users = Table { name: "users" }
 
 createUsers :: forall r. PostgreSQL.Connection -> App r Unit
 createUsers =
-  liftAff <<< execute
-    """
+  liftAff
+    <<< execute
+        """
   CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY,
     username TEXT NOT NULL,
@@ -154,7 +162,8 @@ createUsers =
 
 dropUsers :: forall r. PostgreSQL.Connection -> App r Unit
 dropUsers =
-  liftAff <<< execute
-    """
+  liftAff
+    <<< execute
+        """
     DROP TABLE users;
 """

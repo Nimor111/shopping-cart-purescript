@@ -4,7 +4,6 @@ module Web.ShoppingCart.Services.Orders
   ) where
 
 import Prelude
-
 import Control.Bind (join)
 import Control.Monad.Error.Class (throwError)
 import Control.Monad.Except.Trans (ExceptT(..))
@@ -74,46 +73,51 @@ get :: forall r. UserId -> OrderId -> App r (Maybe Order)
 get (UserId uid) (OrderId oid) = do
   let
     str = generateSQLStringFromQuery
+
     orderSql =
       selectFrom orders \{ id, paymentId, userId, items, total } -> do
         restrict $ userId .== (lit uid)
         restrict $ id .== (lit oid)
         pure $ { id, paymentId, userId, items, total }
-
   debug empty $ str orderSql
   hoistSelda do
     dbOrders <- query orderSql
-    pure $ hush =<< map (\dbOrder ->
-        case decodeJson dbOrder.items of
-          Left err -> throwError (databaseError $ ConversionError err)
-          Right items -> Right $ toOrder items dbOrder)
-        (head dbOrders)
+    pure $ hush
+      =<< map
+          ( \dbOrder -> case decodeJson dbOrder.items of
+              Left err -> throwError (databaseError $ ConversionError err)
+              Right items -> Right $ toOrder items dbOrder
+          )
+          (head dbOrders)
 
 findBy :: forall r. UserId -> App r (Array Order)
 findBy (UserId uid) = do
   let
     str = generateSQLStringFromQuery
+
     sql =
       selectFrom orders \{ id, paymentId, userId, items, total } -> do
         restrict $ userId .== (lit uid)
         pure { id, paymentId, userId, items, total }
-
   debug empty $ str sql
   hoistSelda do
     dbOrders <- query sql
-    either throwError pure $ sequence $ map (\dbOrder ->
-        case decodeJson dbOrder.items of
-          Left err -> Left (ConversionError err)
-          Right items -> Right $ toOrder items dbOrder)
-        dbOrders
+    either throwError pure $ sequence
+      $ map
+          ( \dbOrder -> case decodeJson dbOrder.items of
+              Left err -> Left (ConversionError err)
+              Right items -> Right $ toOrder items dbOrder
+          )
+          dbOrders
 
 create :: forall r. OrderId -> UserId -> PaymentId -> Array CartItem -> Money -> App r OrderId
 create orderId userId paymentId items total = do
   let
     str = generateSQLStringFromQuery
-    dbOrderItems = encodeJson $ map (\cartItem -> { itemId: unwrap cartItem.item.id, quantity: unwrap cartItem.quantity }) items
-    orderData = { id: unwrap orderId, paymentId: unwrap paymentId, userId: unwrap userId, items: dbOrderItems, total: unwrap total }
 
+    dbOrderItems = encodeJson $ map (\cartItem -> { itemId: unwrap cartItem.item.id, quantity: unwrap cartItem.quantity }) items
+
+    orderData = { id: unwrap orderId, paymentId: unwrap paymentId, userId: unwrap userId, items: dbOrderItems, total: unwrap total }
   debug empty $ "Creating new order..."
   hoistSelda do
     insert1_ orders orderData

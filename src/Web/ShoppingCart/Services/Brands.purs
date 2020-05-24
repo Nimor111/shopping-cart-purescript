@@ -4,7 +4,6 @@ module Web.ShoppingCart.Services.Brands
   ) where
 
 import Prelude
-
 import Control.Monad.Logger.Class (debug)
 import Data.Map.Internal (empty)
 import Data.Newtype (unwrap)
@@ -42,8 +41,8 @@ create :: forall r. Brand -> App r Unit
 create { id, name } = do
   let
     str = generateSQLStringFromQuery
-    brandData = { id: unwrap id, name: unwrap name }
 
+    brandData = { id: unwrap id, name: unwrap name }
   debug empty $ "Creating new brand with id " <> unwrap id <> " and name " <> unwrap name
   hoistSelda do
     insert1_ brands brandData
@@ -52,10 +51,10 @@ findAll :: forall r. App r (Array Brand)
 findAll = do
   let
     str = generateSQLStringFromQuery
+
     sql =
       selectFrom brands \{ id, name } -> do
         pure { id, name }
-
   debug empty $ str sql
   hoistSelda do
     dbBrands <- query sql

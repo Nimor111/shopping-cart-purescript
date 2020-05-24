@@ -4,7 +4,6 @@ module Web.ShoppingCart.Services.Items
   ) where
 
 import Prelude
-
 import Control.Monad.Logger.Class (debug)
 import Data.Array (head)
 import Data.Map.Internal (empty)
@@ -59,10 +58,10 @@ findAll :: forall r. App r (Array Item)
 findAll = do
   let
     str = generateSQLStringFromQuery
+
     sql =
       selectFrom items \{ id, name, description, price, brandId, categoryId } -> do
         pure { id, name, description, price, brandId, categoryId }
-
   debug empty $ str sql
   hoistSelda do
     dbItems <- query sql
@@ -72,13 +71,13 @@ findBy :: forall r. BrandName -> App r (Array Item)
 findBy (BrandName brandName) = do
   let
     str = generateSQLStringFromQuery
+
     sql =
       selectFrom items \{ id, name, description, price, brandId, categoryId } -> do
         b <-
           innerJoin brands \brand -> brandId .== brand.id
         restrict $ b.name .== (lit brandName)
         pure { id, name, description, price, brandId, categoryId }
-
   debug empty $ str sql
   hoistSelda do
     dbItems <- query sql
@@ -88,11 +87,11 @@ findById :: forall r. ItemId -> App r (Maybe Item)
 findById (ItemId itemId) = do
   let
     str = generateSQLStringFromQuery
+
     sql =
       selectFrom items \{ id, name, description, price, brandId, categoryId } -> do
         restrict $ (lit itemId) .== id
         pure $ { id, name, description, price, brandId, categoryId }
-
   debug empty $ str sql
   hoistSelda do
     dbItems <- query sql
@@ -102,8 +101,8 @@ create :: forall r. CreateItem -> App r Unit
 create { id, name, description, price, brandId, categoryId } = do
   let
     str = generateSQLStringFromQuery
-    itemData = { id: unwrap id, name: unwrap name, description: unwrap description, price: unwrap price, brandId: unwrap brandId, categoryId: unwrap categoryId }
 
+    itemData = { id: unwrap id, name: unwrap name, description: unwrap description, price: unwrap price, brandId: unwrap brandId, categoryId: unwrap categoryId }
   debug empty $ "Creating new item with id " <> unwrap id <> " and name " <> unwrap name
   hoistSelda do
     insert1_ items itemData

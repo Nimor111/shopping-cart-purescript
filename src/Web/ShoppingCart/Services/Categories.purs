@@ -4,7 +4,6 @@ module Web.ShoppingCart.Services.Categories
   ) where
 
 import Prelude
-
 import Control.Monad.Logger.Class (debug)
 import Data.Map.Internal (empty)
 import Data.Newtype (unwrap)
@@ -43,8 +42,8 @@ create :: forall r. Category -> App r Unit
 create { id, name } = do
   let
     str = generateSQLStringFromQuery
-    categoryData = { id: unwrap id, name: unwrap name }
 
+    categoryData = { id: unwrap id, name: unwrap name }
   debug empty $ "Creating new category with id " <> unwrap id <> " and name " <> unwrap name
   hoistSelda do
     insert1_ categories categoryData
@@ -53,10 +52,10 @@ findAll :: forall r. App r (Array Category)
 findAll = do
   let
     str = generateSQLStringFromQuery
+
     sql =
       selectFrom categories \{ id, name } -> do
         pure { id, name }
-
   debug empty $ str sql
   hoistSelda do
     dbCategories <- query sql

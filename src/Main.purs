@@ -1,7 +1,6 @@
 module Main where
 
 import Prelude
-
 import Effect (Effect)
 import Web.ShoppingCart (runServer) as ShoppingCart
 import Web.ShoppingCart.App (App)
