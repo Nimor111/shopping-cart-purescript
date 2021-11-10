@@ -9,12 +9,12 @@
     "watch": "spago bundle-app --watch --main Main --to dist/app.js",
     "dev": "yarn parcel assets/*.html",
     "bundle": "spago bundle-app --main Main --to dist/app.js && parcel build assets/*.html",
-    "serve": "yarn bundle && http-server dist",
+    "serve": "yarn bundle && http-server dist/app.js",
     "test": "spago test"
   },
   "devDependencies": {
     "nodemon": "^2.0.2",
-    "parcel-bundler": "^1.12.4"
+    "parcel": "2"
   },
   "dependencies": {
     "bcrypt": "^5.0.0",

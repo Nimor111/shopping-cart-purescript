@@ -1,25 +1,44 @@
-{-
-Welcome to a Spago project!
-You can edit this file as you like.
--}
 { name = "shopping-cart"
-, dependencies = [ 
-    "console", 
-    "effect", 
-    "halogen", 
-    "psci-support", 
-    "httpure", 
-    "postgresql-client", 
-    "selda",
-    "uuid",
-    "ordered-collections",
-    "aff-retry",
-    "simple-jwt",
-    "checked-exceptions",
-    "refinery",
-    "monad-logger",
-    "argonaut",
-    "node-bcrypt"
+, dependencies =
+  [ "aff"
+  , "aff-retry"
+  , "argonaut"
+  , "argonaut-codecs"
+  , "argonaut-core"
+  , "arrays"
+  , "bifunctors"
+  , "checked-exceptions"
+  , "console"
+  , "datetime"
+  , "effect"
+  , "either"
+  , "exceptions"
+  , "foldable-traversable"
+  , "foreign"
+  , "foreign-object"
+  , "halogen"
+  , "httpure"
+  , "identity"
+  , "integers"
+  , "lists"
+  , "math"
+  , "maybe"
+  , "monad-logger"
+  , "newtype"
+  , "node-bcrypt"
+  , "nonempty"
+  , "ordered-collections"
+  , "postgresql-client"
+  , "prelude"
+  , "psci-support"
+  , "refinery"
+  , "selda"
+  , "simple-jwt"
+  , "strings"
+  , "test-unit"
+  , "transformers"
+  , "uuid"
+  , "variant"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]

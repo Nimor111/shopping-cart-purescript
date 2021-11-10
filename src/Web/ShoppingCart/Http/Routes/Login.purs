@@ -1,17 +1,20 @@
 module Web.ShoppingCart.Http.Routes.Login where
 
 import Prelude
+
 import Control.Monad.Error.Class (class MonadError, class MonadThrow, throwError)
 import Control.Monad.Except.Trans (ExceptT(..), runExceptT)
 import Control.Monad.Reader.Class (class MonadAsk)
+import Data.Argonaut (parseJson, printJsonDecodeError)
 import Data.Argonaut.Core (stringify)
 import Data.Argonaut.Decode.Class (decodeJson)
 import Data.Argonaut.Encode.Class (encodeJson)
 import Data.Argonaut.Parser (jsonParser)
 import Data.Either (Either(..))
 import Data.Newtype (un, unwrap, wrap)
+import Data.Symbol (SProxy(..))
 import Data.Traversable (sequence)
-import Data.Variant (SProxy(..), Variant, inj)
+import Data.Variant (Variant, inj)
 import Effect.Aff.Class (class MonadAff)
 import HTTPure ((!@), (!?))
 import HTTPure.Body (class Body)
@@ -21,12 +24,12 @@ import HTTPure.Response (Response, created, noContent', notFound, ok, ok') as HT
 import Web.ShoppingCart.App (AppError)
 import Web.ShoppingCart.Context (Context)
 import Web.ShoppingCart.Domain.User (JwtToken(..), LoginUser(..))
-import Web.ShoppingCart.Error (type (+), JsonDecodeError, LoginError, jsonDecodeError, loginError)
+import Web.ShoppingCart.Error (type (+), ShoppingCartJsonDecodeError, LoginError, jsonDecodeError, loginError)
 import Web.ShoppingCart.Http.Routes.Headers (responseHeaders)
 import Web.ShoppingCart.Services.Auth (Auth)
 
 type HandleLoginError r
-  = Variant (LoginError + JsonDecodeError + r)
+  = Variant (LoginError + ShoppingCartJsonDecodeError + r)
 
 loginRouter ::
   forall r m.
@@ -59,7 +62,7 @@ handleLogin authClient body req =
         user <- ExceptT $ pure $ mapJsonError body
         ExceptT $ sequence $ Right (authClient.login user.userName user.password)
   where
-  mapJsonError :: forall r1. String -> Either (Variant (JsonDecodeError + r1)) LoginUser
-  mapJsonError body = case decodeJson =<< jsonParser body of
-    Left error -> Left $ jsonDecodeError error
+  mapJsonError :: forall r1. String -> Either (Variant (ShoppingCartJsonDecodeError + r1)) LoginUser
+  mapJsonError body = case decodeJson =<< parseJson body of
+    Left error -> Left $ jsonDecodeError (printJsonDecodeError error)
     Right v -> Right v

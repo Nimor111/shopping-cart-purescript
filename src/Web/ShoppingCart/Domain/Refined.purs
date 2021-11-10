@@ -2,6 +2,7 @@ module Web.ShoppingCart.Domain.Refined
   ( refineMaybe
   , refineIdentity
   , mapToError
+  , mapToJsonError
   , ValidUUID(..)
   , NonEmptyString(..)
   ) where
@@ -12,6 +13,7 @@ import Data.HeytingAlgebra (not)
 import Data.Identity (Identity(..))
 import Data.Maybe (Maybe(..))
 import Data.Refinery.Core (class Validate, Error, EvalTree(..), Refined, refine)
+import Data.Argonaut.Decode.Error (JsonDecodeError(..))
 import Data.String.Common (null)
 import Data.UUID (parseUUID)
 
@@ -50,3 +52,8 @@ mapToError :: forall p a f. Show a => Either (Error a) (f (Refined p a)) -> Eith
 mapToError refined = case refined of
   Right v -> Right v
   Left err -> Left $ "Refine error during decoding: value " <> show err.value <> " should be: " <> show err.evalTree
+
+mapToJsonError :: forall p a f. Show a => Either (Error a) (f (Refined p a)) -> Either JsonDecodeError (f (Refined p a))
+mapToJsonError refined = case refined of
+  Right v -> Right v
+  Left err -> Left $ TypeMismatch ("Refine error during decoding: value " <> show err.value <> " should be: " <> show err.evalTree)

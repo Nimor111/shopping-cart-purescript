@@ -14,7 +14,7 @@ import Database.PostgreSQL as PostgreSQL
 import Effect.Aff (Aff)
 import Effect.Class.Console (log, logShow)
 import Selda (leftJoin, restrict, selectFrom, (.==))
-import Selda.Col (lit)
+import Selda.Lit (lit)
 import Selda.PG.Class (insert1_, query)
 import Selda.PG.Class (update) as SeldaPG
 import Selda.Query (innerJoin)
@@ -113,4 +113,4 @@ update { id, price } = do
   hoistSelda do
     SeldaPG.update items
       (\r -> r.id .== (lit $ unwrap id))
-      (\r -> r { price = lit $ unwrap price })
+      (\r -> r { price = (lit $ unwrap price) })

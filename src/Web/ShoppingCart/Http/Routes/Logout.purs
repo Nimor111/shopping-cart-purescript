@@ -2,27 +2,22 @@ module Web.ShoppingCart.Http.Routes.Logout where
 
 import Prelude
 import Data.Maybe (Maybe(..))
-import Control.Monad.Error.Class (class MonadError, class MonadThrow, throwError)
+import Control.Monad.Error.Class (class MonadError, throwError)
 import Control.Monad.Except.Trans (ExceptT(..), runExceptT)
 import Control.Monad.Reader.Class (class MonadAsk)
 import Data.Either (Either(..))
-import Data.Newtype (un, unwrap, wrap)
+import Data.Newtype (wrap)
 import Data.Traversable (sequence)
-import Data.Variant (SProxy(..), Variant, inj)
+import Data.Variant (Variant)
 import Effect.Aff.Class (class MonadAff)
-import HTTPure ((!@), (!?))
-import HTTPure.Body (class Body)
-import HTTPure.Headers (Headers(..))
+import HTTPure.Headers (Headers)
 import HTTPure.Method (Method(..))
 import HTTPure.Lookup ((!!))
 import HTTPure.Request (Request) as HTTPure
-import HTTPure.Response (Response, created, noContent, noContent', notFound, ok, ok') as HTTPure
-import Web.ShoppingCart.App (AppError)
+import HTTPure.Response (Response, noContent, notFound) as HTTPure
 import Web.ShoppingCart.Context (Context)
-import Web.ShoppingCart.Domain.User (JwtToken(..), LoginUser(..))
+import Web.ShoppingCart.Domain.User (JwtToken)
 import Web.ShoppingCart.Error (type (+), JwtTokenMissingError, jwtTokenMissingError)
-import Web.ShoppingCart.Http.Routes.Checkout (HandleCheckoutError)
-import Web.ShoppingCart.Http.Routes.Headers (responseHeaders)
 import Web.ShoppingCart.Services.Auth (Auth)
 
 type HandleLogoutError r

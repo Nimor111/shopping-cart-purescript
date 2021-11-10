@@ -15,6 +15,7 @@ import Control.Monad.Except (runExcept)
 import Control.Monad.Except.Trans (except)
 import Data.Argonaut.Core (Json, jsonEmptyObject)
 import Data.Argonaut.Decode.Class (class DecodeJson, decodeJson)
+import Data.Argonaut.Decode.Error (JsonDecodeError)
 import Data.Argonaut.Decode.Combinators ((.:?), (.:))
 import Data.Argonaut.Encode.Class (class EncodeJson)
 import Data.Argonaut.Encode.Combinators ((:=?), (~>), (:=), (~>?))
@@ -26,7 +27,7 @@ import Data.Refinery.Predicate.Numeric (Pos)
 import Data.Show (class Show)
 import Web.ShoppingCart.Domain.Brand (Brand, BrandId(..))
 import Web.ShoppingCart.Domain.Category (Category, CategoryId(..))
-import Web.ShoppingCart.Domain.Refined (NonEmptyString, ValidUUID, mapToError, refineIdentity, refineMaybe)
+import Web.ShoppingCart.Domain.Refined (NonEmptyString, ValidUUID, mapToError, mapToJsonError, refineIdentity, refineMaybe)
 import Web.ShoppingCart.Domain.RefinedPred (NamePred(..), PositiveNumberPred(..), UUIDPred(..))
 
 newtype ItemId
@@ -58,7 +59,7 @@ type ItemDTO
     , categoryId :: String
     }
 
-decodeItemDTO :: Json -> Either String ItemDTO
+decodeItemDTO :: Json -> Either JsonDecodeError ItemDTO
 decodeItemDTO json = do
   obj <- decodeJson json
   id <- obj .:? "id"
@@ -100,12 +101,12 @@ instance decodeJsonRefinedItem :: DecodeJson RefinedItemDTO where
     runExcept
       $ do
           r <- except $ decodeItemDTO json
-          refinedId <- except $ mapToError $ refineMaybe r.id
-          refinedName <- except $ mapToError $ refineIdentity r.name
-          refinedDescription <- except $ mapToError $ refineIdentity r.description
-          refinedPrice <- except $ mapToError $ refineIdentity r.price
-          refinedBrandId <- except $ mapToError $ refineIdentity r.brandId
-          refinedCategoryId <- except $ mapToError $ refineIdentity r.categoryId
+          refinedId <- except $ mapToJsonError $ refineMaybe r.id
+          refinedName <- except $ mapToJsonError $ refineIdentity r.name
+          refinedDescription <- except $ mapToJsonError $ refineIdentity r.description
+          refinedPrice <- except $ mapToJsonError $ refineIdentity r.price
+          refinedBrandId <- except $ mapToJsonError $ refineIdentity r.brandId
+          refinedCategoryId <- except $ mapToJsonError $ refineIdentity r.categoryId
           except $ Right $ RefinedItemDTO (map UUIDPred refinedId) (NamePred $ unwrap refinedName) (NamePred $ unwrap refinedDescription) (PositiveNumberPred $ unwrap refinedPrice) (NamePred $ unwrap refinedBrandId) (NamePred $ unwrap refinedCategoryId)
 
 type UpdateItemDTO
@@ -128,8 +129,8 @@ instance decodeJsonRefinedItemUpdate :: DecodeJson RefinedItemUpdateDTO where
     runExcept
       $ do
           (r :: UpdateItemDTO) <- except $ decodeJson json
-          refinedId <- except $ mapToError $ refineIdentity r.id
-          refinedPrice <- except $ mapToError $ refineIdentity r.price
+          refinedId <- except $ mapToJsonError $ refineIdentity r.id
+          refinedPrice <- except $ mapToJsonError $ refineIdentity r.price
           except $ Right $ RefinedItemUpdateDTO (UUIDPred $ unwrap refinedId) (PositiveNumberPred $ unwrap refinedPrice)
 
 derive instance newtypeItemId :: Newtype ItemId _

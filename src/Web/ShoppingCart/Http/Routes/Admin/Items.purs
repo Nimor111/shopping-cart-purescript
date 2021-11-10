@@ -1,9 +1,11 @@
 module Web.ShoppingCart.Http.Routes.Admin.Items where
 
 import Prelude
+
 import Control.Monad.Error.Class (class MonadThrow, throwError)
 import Control.Monad.Except.Trans (ExceptT(..), runExceptT)
 import Control.Monad.Reader.Class (class MonadAsk)
+import Data.Argonaut (parseJson, printJsonDecodeError)
 import Data.Argonaut.Decode.Class (decodeJson)
 import Data.Argonaut.Parser (jsonParser)
 import Data.Either (Either(..))
@@ -20,14 +22,14 @@ import HTTPure.Response (Response, created, notFound, ok) as HTTPure
 import Web.ShoppingCart.Context (Context)
 import Web.ShoppingCart.Domain.Item (CreateItem, RefinedItemDTO(..), RefinedItemUpdateDTO(..), UpdateItem)
 import Web.ShoppingCart.Domain.RefinedPred (nameToDomain, numToDomain, uuidToDomain)
-import Web.ShoppingCart.Error (JsonDecodeError, jsonDecodeError, type (+))
+import Web.ShoppingCart.Error (ShoppingCartJsonDecodeError, jsonDecodeError, type (+))
 import Web.ShoppingCart.Services.Items (Items)
 
 itemsRouter ::
   forall r m.
   MonadAff m =>
   MonadAsk Context m =>
-  MonadThrow (Variant (JsonDecodeError + r)) m =>
+  MonadThrow (Variant (ShoppingCartJsonDecodeError + r)) m =>
   Items m ->
   HTTPure.Request ->
   m HTTPure.Response
@@ -48,10 +50,10 @@ itemsRouter _ _ = HTTPure.notFound
 createItem ::
   forall r m.
   MonadAff m =>
-  MonadThrow (Variant (JsonDecodeError + r)) m =>
+  MonadThrow (Variant (ShoppingCartJsonDecodeError + r)) m =>
   Items m ->
   String ->
-  m (Either (Variant (JsonDecodeError r)) Unit)
+  m (Either (Variant (ShoppingCartJsonDecodeError r)) Unit)
 createItem items body =
   runExceptT
     $ do
@@ -59,25 +61,25 @@ createItem items body =
         uuid <- ExceptT $ sequence $ Right $ liftEffect genUUID
         ExceptT $ sequence $ Right $ items.create { id: (wrap $ toString uuid), name: nameToDomain itemName, description: nameToDomain itemDescription, price: numToDomain itemPrice, brandId: nameToDomain itemBrand, categoryId: nameToDomain itemCategory }
   where
-  mapJsonError :: String -> Either (Variant (JsonDecodeError + r)) RefinedItemDTO
-  mapJsonError b = case decodeJson =<< jsonParser b of
-    Left errors -> Left $ jsonDecodeError errors
+  mapJsonError :: String -> Either (Variant (ShoppingCartJsonDecodeError + r)) RefinedItemDTO
+  mapJsonError b = case decodeJson =<< parseJson b of
+    Left errors -> Left $ jsonDecodeError (printJsonDecodeError errors)
     Right v -> Right v
 
 updateItem ::
   forall r m.
   MonadAff m =>
-  MonadThrow (Variant (JsonDecodeError + r)) m =>
+  MonadThrow (Variant (ShoppingCartJsonDecodeError + r)) m =>
   Items m ->
   String ->
-  m (Either (Variant (JsonDecodeError r)) Unit)
+  m (Either (Variant (ShoppingCartJsonDecodeError r)) Unit)
 updateItem items body =
   runExceptT
     $ do
         (RefinedItemUpdateDTO itemId itemPrice) <- ExceptT $ pure $ mapJsonError body
         ExceptT $ sequence $ Right $ items.update { id: uuidToDomain itemId, price: numToDomain itemPrice }
   where
-  mapJsonError :: String -> Either (Variant (JsonDecodeError + r)) RefinedItemUpdateDTO
-  mapJsonError b = case decodeJson =<< jsonParser b of
-    Left errors -> Left $ jsonDecodeError errors
+  mapJsonError :: String -> Either (Variant (ShoppingCartJsonDecodeError + r)) RefinedItemUpdateDTO
+  mapJsonError b = case decodeJson =<< parseJson b of
+    Left errors -> Left $ jsonDecodeError (printJsonDecodeError errors)
     Right v -> Right v

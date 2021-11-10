@@ -13,14 +13,14 @@ let
     pkgs.fetchFromGitHub {
       owner = "justinwoo";
       repo = "easy-purescript-nix";
-      rev = "d4879bfd2b595d7fbd37da1a7bea5d0361975eb3";
-      sha256 = "0kzwg3mwziwx378kvbzhayy65abvk1axi12zvf2f92cs53iridwh";
+      rev = "7802db65618c2ead3a55121355816b4c41d276d9";
+      sha256 = "0n99hxxcp9yc8yvx7bx4ac6askinfark7dnps3hzz5v9skrvq15q";
     }
   ) {
     inherit pkgs;
   };
 
-  node_packages = import ./node-nix-deps/default-node.nix { inherit (pkgs) nodejs; };
+  node_packages = import ./node-nix-deps { inherit (pkgs) nodejs; };
 in
 stdenv.mkDerivation {
   name = "purescript-bootstrap-shell";

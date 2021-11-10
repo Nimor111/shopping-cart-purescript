@@ -11,6 +11,7 @@ import Control.Monad.Except.Trans (except)
 import Data.Argonaut.Core (Json, jsonEmptyObject)
 import Data.Argonaut.Decode.Class (class DecodeJson, decodeJson)
 import Data.Argonaut.Decode.Combinators ((.:?), (.:))
+import Data.Argonaut.Decode.Error (JsonDecodeError)
 import Data.Argonaut.Encode.Class (class EncodeJson, encodeJson)
 import Data.Argonaut.Encode.Combinators ((:=?), (~>), (:=), (~>?))
 import Data.Either (Either(..))
@@ -26,8 +27,10 @@ import Data.Refinery.Core (Refined, Error, refine, unrefine)
 import Data.Show (class Show)
 import Foreign (ForeignError(..), readString)
 import Foreign.Object (empty)
-import Web.ShoppingCart.Domain.Refined (NonEmptyString, ValidUUID, mapToError, refineIdentity, refineMaybe)
+import Web.ShoppingCart.Domain.Refined (NonEmptyString, ValidUUID, mapToError, mapToJsonError, refineIdentity, refineMaybe)
 import Web.ShoppingCart.Domain.RefinedPred (UUIDPred(..), NamePred(..))
+
+import Data.Bifunctor (lmap)
 
 newtype BrandId
   = BrandId String
@@ -44,7 +47,7 @@ type BrandDTO
     , name :: String
     }
 
-decodeBrandDTO :: Json -> Either String BrandDTO
+decodeBrandDTO :: Json -> Either JsonDecodeError BrandDTO
 decodeBrandDTO json = do
   obj <- decodeJson json
   id <- obj .:? "id"
@@ -66,8 +69,8 @@ instance decodeJsonRefinedBrand :: DecodeJson RefinedBrandDTO where
     runExcept
       $ do
           r <- except $ decodeBrandDTO json
-          refinedId <- except $ mapToError $ refineMaybe r.id
-          refinedName <- except $ mapToError $ refineIdentity r.name
+          refinedId <- except $ mapToJsonError $ refineMaybe r.id
+          refinedName <- except $ mapToJsonError $ refineIdentity r.name
           except $ Right $ RefinedBrandDTO (map UUIDPred refinedId) (NamePred $ unwrap refinedName)
 
 derive instance newtypeBrandId :: Newtype BrandId _

@@ -10,7 +10,7 @@ module Web.ShoppingCart.Error
   , JwtTokenMissingError(..)
   , PaymentFailedError(..)
   , DatabaseError(..)
-  , JsonDecodeError(..)
+  , ShoppingCartJsonDecodeError(..)
   , UnknownError(..)
   , UserNameInUseError(..)
   , databaseError
@@ -26,29 +26,25 @@ module Web.ShoppingCart.Error
   ) where
 
 import Prelude
-import Control.Monad.Except.Checked (handleError)
 import Data.Either (Either, either)
-import Data.List.Types (NonEmptyList(..))
 import Data.Refinery.Core (EvalTree)
-import Data.Show (class Show)
-import Data.Unit (unit)
-import Data.Variant (SProxy(..), Variant, case_, inj, on, onMatch)
+import Data.Variant (Variant, inj, onMatch)
 import Database.PostgreSQL (PGError)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Exception (Error, message)
-import HTTPure.Response (Response, ResponseM) as HTTPure
+import HTTPure.Response (Response) as HTTPure
 import HTTPure.Response (badRequest, conflict, forbidden, internalServerError, notFound)
 import Web.ShoppingCart.ErrorTags (_databaseError, _jsonDecodeError, _orderNotFound, _unknownError, _orderCreateFailedError, _paymentFailedError, _loginError, _jwtTokenMissingError, _userNameInUseError, _stringRefineError)
 
-type RowApply (f :: # Type -> # Type) (a :: # Type)
+type RowApply (f :: Row Type -> Row Type) (a :: Row Type)
   = f a
 
 infixr 0 type RowApply as +
 
-type JsonDecodeError r
+type ShoppingCartJsonDecodeError r
   = ( jsonDecodeError :: String | r )
 
-jsonDecodeError :: forall r. String -> Variant (JsonDecodeError + r)
+jsonDecodeError :: forall r. String -> Variant (ShoppingCartJsonDecodeError + r)
 jsonDecodeError = inj _jsonDecodeError
 
 type OrderNotFoundError r
@@ -106,7 +102,7 @@ stringRefineError :: forall r. { value :: String, evalTree :: EvalTree } -> Vari
 stringRefineError = inj _stringRefineError
 
 type RequestError r
-  = ( JsonDecodeError
+  = ( ShoppingCartJsonDecodeError
         + OrderNotFoundError
         + DatabaseError
         + UnknownError

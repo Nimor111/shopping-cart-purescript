@@ -11,7 +11,7 @@ module Web.ShoppingCart.ErrorTags
   , _stringRefineError
   ) where
 
-import Data.Variant (SProxy(..))
+import Data.Symbol (SProxy(..))
 
 _orderNotFound = SProxy :: SProxy "orderNotFoundError"
 

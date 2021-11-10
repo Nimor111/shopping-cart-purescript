@@ -15,8 +15,7 @@ import Control.Monad.Reader (class MonadAsk, asks)
 import Data.Array as Array
 import Data.Foldable (find) as Foldable
 import Data.Maybe (Maybe(..))
-import Data.Show (show)
-import Data.Variant (SProxy(..), Variant, inj)
+import Data.Variant (Variant)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Aff.Retry (RetryStatus(..), recovering)
 import Effect.Class (liftEffect)
@@ -26,12 +25,9 @@ import HTTPure (Response, ok) as HTTPure
 import HTTPure.Path (Path) as HTTPure
 import HTTPure.Request (Request) as HTTPure
 import HTTPure.Response (notFound) as HTTPure
-import Selda.PG.Class (insert_)
-import Web.ShoppingCart.App (AppError, App)
+import Web.ShoppingCart.App (AppError)
 import Web.ShoppingCart.Context (Context)
-import Web.ShoppingCart.Database (hoistSelda)
 import Web.ShoppingCart.Error (UnknownError, unknownError, type (+))
-import Web.ShoppingCart.Http.Routes.Brands (brandsRouter)
 import Web.ShoppingCart.Retry (checks, retryPolicy)
 
 data Route m

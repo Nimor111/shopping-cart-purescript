@@ -1,9 +1,11 @@
 module Web.ShoppingCart.Http.Routes.Register where
 
 import Prelude
+
 import Control.Monad.Error.Class (class MonadError, throwError)
 import Control.Monad.Except.Trans (ExceptT(..), runExceptT)
 import Control.Monad.Reader.Class (class MonadAsk)
+import Data.Argonaut (parseJson, printJsonDecodeError)
 import Data.Argonaut.Core (stringify)
 import Data.Argonaut.Decode.Class (decodeJson)
 import Data.Argonaut.Encode.Class (encodeJson)
@@ -17,12 +19,12 @@ import HTTPure.Request (Request) as HTTPure
 import HTTPure.Response (Response, notFound, ok') as HTTPure
 import Web.ShoppingCart.Context (Context)
 import Web.ShoppingCart.Domain.User (JwtToken, LoginUser)
-import Web.ShoppingCart.Error (type (+), JsonDecodeError, UserNameInUseError, jsonDecodeError)
+import Web.ShoppingCart.Error (type (+), ShoppingCartJsonDecodeError, UserNameInUseError, jsonDecodeError)
 import Web.ShoppingCart.Http.Routes.Headers (responseHeaders)
 import Web.ShoppingCart.Services.Auth (Auth)
 
 type HandleRegisterError r
-  = Variant (UserNameInUseError + JsonDecodeError + r)
+  = Variant (UserNameInUseError + ShoppingCartJsonDecodeError + r)
 
 registerRouter ::
   forall r m.
@@ -55,7 +57,7 @@ handleRegister authClient body req =
         user <- ExceptT $ pure $ mapJsonError body
         ExceptT $ sequence $ Right (authClient.newUser user.userName user.password)
   where
-  mapJsonError :: forall r1. String -> Either (Variant (JsonDecodeError + r1)) LoginUser
-  mapJsonError b = case decodeJson =<< jsonParser b of
-    Left error -> Left $ jsonDecodeError error
+  mapJsonError :: forall r1. String -> Either (Variant (ShoppingCartJsonDecodeError + r1)) LoginUser
+  mapJsonError b = case decodeJson =<< parseJson b of
+    Left error -> Left $ jsonDecodeError (printJsonDecodeError error)
     Right v -> Right v

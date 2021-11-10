@@ -4,30 +4,23 @@ module Web.ShoppingCart.Services.Orders
   ) where
 
 import Prelude
-import Control.Bind (join)
+
 import Control.Monad.Error.Class (throwError)
-import Control.Monad.Except.Trans (ExceptT(..))
 import Control.Monad.Logger.Class (debug)
-import Control.Monad.Reader.Trans (ReaderT(..))
+import Data.Argonaut (printJsonDecodeError)
 import Data.Argonaut.Core (Json)
 import Data.Argonaut.Decode.Class (decodeJson)
 import Data.Argonaut.Encode.Class (encodeJson)
 import Data.Array (head)
 import Data.Either (Either(..), either, hush)
-import Data.Function (flip)
-import Data.Identity (Identity(..))
 import Data.Map.Internal (empty)
 import Data.Maybe (Maybe)
 import Data.Newtype (unwrap)
-import Data.Traversable (sequence, traverse)
+import Data.Traversable (sequence)
 import Database.PostgreSQL (PGError(..))
-import Database.PostgreSQL as PostgreSQL
-import Effect.Aff (Aff)
-import Effect.Aff.Class (liftAff)
-import Selda (leftJoin, restrict, selectFrom, (.==))
-import Selda.Col (lit)
-import Selda.PG.Class (insert1_, insert_, query)
-import Selda.Query.Utils (RecordToArrayForeign(..))
+import Selda (restrict, selectFrom, (.==))
+import Selda.Lit (lit)
+import Selda.PG.Class (insert1_, query)
 import Web.ShoppingCart.App (App)
 import Web.ShoppingCart.Database (generateSQLStringFromQuery, hoistSelda)
 import Web.ShoppingCart.Database.Tables (orders)
@@ -85,7 +78,7 @@ get (UserId uid) (OrderId oid) = do
     pure $ hush
       =<< map
           ( \dbOrder -> case decodeJson dbOrder.items of
-              Left err -> throwError (databaseError $ ConversionError err)
+              Left err -> throwError (databaseError $ ConversionError (printJsonDecodeError err))
               Right items -> Right $ toOrder items dbOrder
           )
           (head dbOrders)
@@ -105,7 +98,7 @@ findBy (UserId uid) = do
     either throwError pure $ sequence
       $ map
           ( \dbOrder -> case decodeJson dbOrder.items of
-              Left err -> Left (ConversionError err)
+              Left err -> Left (ConversionError (printJsonDecodeError err))
               Right items -> Right $ toOrder items dbOrder
           )
           dbOrders

@@ -1,38 +1,32 @@
 module Web.ShoppingCart.Http.Routes.Cart where
 
 import Prelude
+
 import Control.Monad.Error.Class (class MonadThrow, throwError)
 import Control.Monad.Except.Trans (ExceptT(..), runExceptT)
 import Control.Monad.Logger.Class (class MonadLogger, info)
 import Control.Monad.Reader.Class (class MonadAsk)
 import Data.Argonaut.Core (stringify)
 import Data.Argonaut.Decode.Class (decodeJson)
+import Data.Argonaut.Decode.Error (JsonDecodeError, printJsonDecodeError)
+import Data.Argonaut.Decode.Parser (parseJson)
 import Data.Argonaut.Encode.Class (encodeJson)
-import Data.Argonaut.Parser (jsonParser)
 import Data.Either (Either(..))
 import Data.Foldable (traverse_)
-import Data.List.Types (NonEmptyList(..))
 import Data.Map.Internal (empty)
-import Data.Newtype (un, unwrap, wrap)
-import Data.Show (show)
+import Data.Newtype (unwrap, wrap)
 import Data.Traversable (sequence)
-import Data.Unit (Unit)
-import Data.Variant (SProxy(..), Variant, inj)
+import Data.Variant (Variant)
 import Effect.Aff.Class (class MonadAff)
-import Effect.Class (liftEffect)
-import Effect.Class.Console (log)
-import Foreign (ForeignError(..))
 import HTTPure ((!@))
-import HTTPure.Body (class Body)
 import HTTPure.Method (Method(..))
 import HTTPure.Request (Request) as HTTPure
 import HTTPure.Response (Response, noContent', notFound, ok, ok') as HTTPure
-import Web.ShoppingCart.App (AppError)
 import Web.ShoppingCart.Context (Context)
-import Web.ShoppingCart.Domain.Item (ItemId(..))
-import Web.ShoppingCart.Domain.ShoppingCart (Cart(..))
-import Web.ShoppingCart.Domain.User (UserId(..))
-import Web.ShoppingCart.Error (JsonDecodeError, jsonDecodeError, type (+))
+import Web.ShoppingCart.Domain.Item (ItemId)
+import Web.ShoppingCart.Domain.ShoppingCart (Cart)
+import Web.ShoppingCart.Domain.User (UserId)
+import Web.ShoppingCart.Error (type (+), jsonDecodeError, ShoppingCartJsonDecodeError)
 import Web.ShoppingCart.Http.Routes.Headers (responseHeaders)
 import Web.ShoppingCart.Services.ShoppingCart (ShoppingCart)
 
@@ -41,7 +35,7 @@ cartRouter ::
   MonadAff m =>
   MonadLogger m =>
   MonadAsk Context m =>
-  MonadThrow (Variant (JsonDecodeError + r)) m =>
+  MonadThrow (Variant (ShoppingCartJsonDecodeError + r)) m =>
   ShoppingCart m ->
   HTTPure.Request ->
   m HTTPure.Response
@@ -50,13 +44,13 @@ cartRouter cart req@{ path, method: Get } = getCartByUser (wrap $ path !@ 0) car
 cartRouter cart req@{ path, method: Post, body } = do
   res <- addItemsToCart (wrap $ path !@ 0) body cart req -- take user id from session in the future?
   case res of
-    Left err -> throwError $ jsonDecodeError err
+    Left err -> throwError $ jsonDecodeError (printJsonDecodeError err)
     Right v -> HTTPure.ok ""
 
 cartRouter cart req@{ path, method: Put, body } = do
   res <- updateCart (wrap $ path !@ 0) body cart req
   case res of
-    Left err -> throwError $ jsonDecodeError err
+    Left err -> throwError $ jsonDecodeError (printJsonDecodeError err)
     Right v -> HTTPure.ok ""
 
 cartRouter cart req@{ path, method: Delete } = removeItemFromCart (wrap $ path !@ 0) (wrap $ path !@ 1) cart req
@@ -79,17 +73,17 @@ getCartByUser userId cart req = do
 addItemsToCart ::
   forall r m.
   MonadAff m =>
-  MonadThrow (Variant (JsonDecodeError + r)) m =>
+  MonadThrow (Variant (ShoppingCartJsonDecodeError + r)) m =>
   MonadLogger m =>
   UserId ->
   String ->
   ShoppingCart m ->
   HTTPure.Request ->
-  m (Either String Unit)
+  m (Either JsonDecodeError Unit)
 addItemsToCart userId body cart req =
   runExceptT
     $ do
-        (newCart :: Cart) <- ExceptT $ pure $ (decodeJson =<< jsonParser body)
+        (newCart :: Cart) <- ExceptT $ pure $ (decodeJson =<< parseJson body)
         info empty $ "Adding item to cart for user" <> show userId <> ". Updated cart: " <> show newCart
         ExceptT $ sequence $ Right (addItems newCart)
   where
@@ -100,16 +94,16 @@ updateCart ::
   forall r m.
   MonadAff m =>
   MonadLogger m =>
-  MonadThrow (Variant (JsonDecodeError + r)) m =>
+  MonadThrow (Variant (ShoppingCartJsonDecodeError + r)) m =>
   UserId ->
   String ->
   ShoppingCart m ->
   HTTPure.Request ->
-  m (Either String Unit)
+  m (Either JsonDecodeError Unit)
 updateCart userId body cart req =
   runExceptT
     $ do
-        (existingCart :: Cart) <- ExceptT $ pure $ (decodeJson =<< jsonParser body)
+        (existingCart :: Cart) <- ExceptT $ pure $ (decodeJson =<< parseJson body)
         info empty $ "Updating cart for user" <> show userId <> ". Existing cart: " <> show existingCart
         ExceptT $ sequence $ Right (cart.update userId existingCart)
 
@@ -117,7 +111,7 @@ removeItemFromCart ::
   forall r m.
   MonadAff m =>
   MonadLogger m =>
-  MonadThrow (Variant (JsonDecodeError + r)) m =>
+  MonadThrow (Variant (ShoppingCartJsonDecodeError + r)) m =>
   UserId ->
   ItemId ->
   ShoppingCart m ->
