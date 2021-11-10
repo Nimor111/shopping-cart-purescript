@@ -29,7 +29,7 @@ yarn watch
 For starting the actual `node` server
 
 ``` sh
-./node_modules/.bin/nodemon dist/app.js
+nodemon dist/app.js
 ```
 
 To format the code 
