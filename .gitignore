@@ -16,3 +16,6 @@ yarn-error.log*
 result
 .vscode/
 yarn.nix
+
+.direnv/
+.parcel-cache/
