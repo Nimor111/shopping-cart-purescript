@@ -1,7 +1,6 @@
 module Web.ShoppingCart where
 
 import Prelude
-
 import Control.Monad.Logger.Class (info)
 import Data.Either (Either(..))
 import Data.Map.Internal (empty)

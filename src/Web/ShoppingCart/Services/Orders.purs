@@ -4,7 +4,6 @@ module Web.ShoppingCart.Services.Orders
   ) where
 
 import Prelude
-
 import Control.Monad.Error.Class (throwError)
 import Control.Monad.Logger.Class (debug)
 import Data.Argonaut (printJsonDecodeError)

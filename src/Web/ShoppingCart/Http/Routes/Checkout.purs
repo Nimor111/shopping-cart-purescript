@@ -1,7 +1,6 @@
 module Web.ShoppingCart.Http.Routes.Checkout where
 
 import Prelude
-
 import Control.Monad.Error.Class (class MonadError, throwError)
 import Control.Monad.Except.Trans (ExceptT(..), runExceptT)
 import Control.Monad.Logger.Class (class MonadLogger, info)

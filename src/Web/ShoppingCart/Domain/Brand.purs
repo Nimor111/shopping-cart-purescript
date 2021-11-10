@@ -29,7 +29,6 @@ import Foreign (ForeignError(..), readString)
 import Foreign.Object (empty)
 import Web.ShoppingCart.Domain.Refined (NonEmptyString, ValidUUID, mapToError, mapToJsonError, refineIdentity, refineMaybe)
 import Web.ShoppingCart.Domain.RefinedPred (UUIDPred(..), NamePred(..))
-
 import Data.Bifunctor (lmap)
 
 newtype BrandId
