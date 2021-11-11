@@ -13,7 +13,7 @@
     "test": "spago test"
   },
   "devDependencies": {
-    "nodemon": "^2.0.2",
+    "nodemon": "^2.0.15",
     "parcel": "2"
   },
   "dependencies": {

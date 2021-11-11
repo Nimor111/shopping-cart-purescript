@@ -27,7 +27,7 @@ stdenv.mkDerivation {
   buildInputs = with pkgs; [
     python
     postgresql
-    nodejs-12_x
+    nodejs-14_x
     yarn
     yarn2nix
     easy-ps.purs

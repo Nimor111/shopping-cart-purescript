@@ -21,7 +21,7 @@ mkYarnPackage rec {
   packageJSON = ./package.json;
   yarnLock = ./yarn.lock;
 
-  nativeBuildInputs = [ easy-ps.purs nodejs-12_x ];
+  nativeBuildInputs = [ easy-ps.purs nodejs-14_x ];
 
   postBuild = ''
     ${easy-ps.purs}/bin/purs compile "$src/**/*.purs" ${builtins.toString
@@ -31,12 +31,8 @@ mkYarnPackage rec {
     '';
 
   postFixup = ''
-    echo $PWD
-    ls $out
     ${easy-ps.spago}/bin/spago bundle-app --no-install \
       --no-build --main Main --to dist/app.js
-    # FIXME use command above when this issue is resolved: https://github.com/purescript/spago/issues/634
-    # ${easy-ps.purs}/bin/purs bundle output/*/*.js -m Main --main Main -o dist/app.js
     mkdir -p $out/dist
     cp -r dist $out/
     ln -s $out/libexec/${name}/node_modules $out/dist
