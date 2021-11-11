@@ -35,6 +35,5 @@ stdenv.mkDerivation {
     easy-ps.spago2nix
     nodePackages.node2nix
     node_packages.purty
-    node_packages.nodemon
   ];
 }
