@@ -31,8 +31,9 @@ mkYarnPackage rec {
     '';
 
   postFixup = ''
-    ${easy-ps.spago}/bin/spago bundle-app --no-install \
-      --no-build --main Main --to dist/app.js
+    # ${easy-ps.spago}/bin/spago bundle-app --no-install \
+     # --no-build --main Main --to dist/app.js
+    ${easy-ps.purs}/bin/purs bundle output/*/*.js -m Main --main Main -o dist/app.js
     mkdir -p $out/dist
     cp -r dist $out/
     ln -s $out/libexec/${name}/node_modules $out/dist
