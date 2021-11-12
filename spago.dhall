@@ -25,7 +25,6 @@
   , "maybe"
   , "monad-logger"
   , "newtype"
-  , "node-bcrypt"
   , "nonempty"
   , "ordered-collections"
   , "postgresql-client"
@@ -39,6 +38,7 @@
   , "transformers"
   , "uuid"
   , "variant"
+  , "node-bcryptjs"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]
