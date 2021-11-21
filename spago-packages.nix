@@ -173,18 +173,6 @@ let
         installPhase = "ln -s $src $out";
       };
 
-    "checked-exceptions" = pkgs.stdenv.mkDerivation {
-        name = "checked-exceptions";
-        version = "v3.1.1";
-        src = pkgs.fetchgit {
-          url = "https://github.com/natefaubion/purescript-checked-exceptions.git";
-          rev = "6ece020df25d01ee95474f7545f28e75dcfb0f0c";
-          sha256 = "0z5n73n8za8w7d26xbdpkm8d70dlz08gm267rhb9ixxv25acjd36";
-        };
-        phases = "installPhase";
-        installPhase = "ln -s $src $out";
-      };
-
     "console" = pkgs.stdenv.mkDerivation {
         name = "console";
         version = "v5.0.0";
@@ -871,11 +859,11 @@ let
 
     "node-sqlite3" = pkgs.stdenv.mkDerivation {
         name = "node-sqlite3";
-        version = "v6.0.0";
+        version = "v7.0.0";
         src = pkgs.fetchgit {
           url = "https://github.com/justinwoo/purescript-node-sqlite3.git";
-          rev = "84f1b4333800edf5db2477a5aec4f93aa5f301f0";
-          sha256 = "0xrby3w76i7ig26jgfvr8lmiih0rkj2d3rbzm5d7x476444n7l56";
+          rev = "1a97b071dc82eb8833fb72482aa84729a2023e53";
+          sha256 = "09cbm18frn9ixfab36hfv0xnivw2f9nyw9c45a4hxla50xczzi3n";
         };
         phases = "installPhase";
         installPhase = "ln -s $src $out";
@@ -1003,11 +991,11 @@ let
 
     "parsing" = pkgs.stdenv.mkDerivation {
         name = "parsing";
-        version = "v7.0.0";
+        version = "v7.0.1";
         src = pkgs.fetchgit {
           url = "https://github.com/purescript-contrib/purescript-parsing.git";
-          rev = "297ad9e88cba9ddda70a249f468b6972477f097f";
-          sha256 = "0a5yypqg9hn0pz51jws1qzzxm1yr684icmyppnb3yqdv6wsz7zg2";
+          rev = "a3e82c26ce2c74b5fa38ff7814d7c35bf9233af5";
+          sha256 = "15yx51khg3niqiryc6qdii6lwdvni77ak7dkbf9w5zw4h1y51p9a";
         };
         phases = "installPhase";
         installPhase = "ln -s $src $out";

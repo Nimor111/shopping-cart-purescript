@@ -1,10 +1,10 @@
 let upstream =
-      https://github.com/purescript/package-sets/releases/download/psc-0.14.4-20211109/packages.dhall sha256:e8d8d5b339f6d46d950da90037c6c38e8809f7e34f727373089ab82c080fc709
+      https://github.com/purescript/package-sets/releases/download/psc-0.14.5-20211116/packages.dhall sha256:7ba810597a275e43c83411d2ab0d4b3c54d0b551436f4b1632e9ff3eb62e327a
 
 let overrides =
       { aff-retry =
-          upstream.aff-retry // 
-              { repo = "https://github.com/Nimor111/purescript-aff-retry.git"
+              upstream.aff-retry
+          //  { repo = "https://github.com/Nimor111/purescript-aff-retry.git"
               , version = "2f36dd0ecba206a24a5f03f754187c99c6c45b1b"
               }
       }
@@ -142,7 +142,7 @@ let additions =
           , "transformers"
           , "variant"
           , "prettyprinter"
-	  , "dodo-printer"
+          , "dodo-printer"
           ]
         , repo = "https://github.com/Kamirus/purescript-selda.git"
         , version = "7e746ef8d6bd32184bb80315eb8ad8209266da34"
@@ -180,6 +180,6 @@ let additions =
         , repo = "https://github.com/Nimor111/purescript-node-bcryptjs.git"
         , version = "8bfc8923c3204843d09b9469eb17d29d2fbf900a"
         }
-}
+      }
 
 in  upstream // overrides // additions

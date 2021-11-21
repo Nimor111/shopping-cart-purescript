@@ -5,7 +5,6 @@ module Web.ShoppingCart.App
   ) where
 
 import Prelude
-import Control.Bind ((>=>))
 import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Logger.Trans (LoggerT(..), runLoggerT)
 import Control.Monad.Reader (ReaderT, runReaderT)
